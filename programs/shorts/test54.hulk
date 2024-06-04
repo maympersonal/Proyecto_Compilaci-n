@@ -1,0 +1,9 @@
+type Person {
+    // ...
+
+    hash() : Number {
+        // ...
+    }
+}
+
+let x : Hashable = new Person() in print(x.hash());

@@ -1,0 +1,4 @@
+type PolarPoint inherits Point {
+    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
+    // ...
+}

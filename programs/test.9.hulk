@@ -1,0 +1,13 @@
+{ 
+    print("sol" @@ s);
+    print(a@"hola")
+    print(a@@"hola")
+    print(a@@a)
+    print(a@@a.length())
+    print(a.length()@@a.length())
+    print(a.length()@@a.x)
+    print("hello world");
+    print(PI);
+    print(E);
+    print(e);
+}  
