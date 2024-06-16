@@ -59,8 +59,4 @@ def uno(archivo):
     hacer_lex(archivo)
 
     
-#todos()
-#uno("programs//shorts//test35.hulk")
-uno("programs//test.1.hulk")
-#creacodigos()
 
