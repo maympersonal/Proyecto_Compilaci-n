@@ -60,7 +60,7 @@ def uno(archivo):
 
     
 #todos()
-#uno("programs//shorts//test35.hulk")
-uno("programs//test.1.hulk")
+uno("programs//shorts//operaciones.hulk")
+#uno("programs//test.10.hulk")
 #creacodigos()
 
