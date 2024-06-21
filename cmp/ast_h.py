@@ -1,4 +1,4 @@
-from sly import ast
+from sly.ast import *
 
 #S' -> program
 class S:

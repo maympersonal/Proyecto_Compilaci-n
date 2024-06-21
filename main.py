@@ -1,6 +1,6 @@
 from io import FileIO
-from lexer import HulkLexer
-from parser import HulkParser
+from cmp.lexer_h import HulkLexer
+from cmp.parser_h import HulkParser
 import os
 
 
@@ -60,7 +60,7 @@ def uno(archivo):
 
     
 #todos()
-uno("programs//shorts//operaciones.hulk")
+uno("programs/shorts/test48.hulk")
 #uno("programs//test.10.hulk")
 #creacodigos()
 
