@@ -1,453 +1,556 @@
 from sly import Parser
 from lexer import HulkLexer
 
+# Definición de la clase Parser para el lenguaje Hulk
 class HulkParser(Parser):
+    # Archivo de depuración
     debugfile = 'debug.txt'
     tokens = HulkLexer.tokens
 
-    precedence = (
-        ('left', OR),
-        ('left', AND),
-        ('left', EQUAL, NOT_EQUAL),
-        ('left', LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL),
-        ('left', PLUS, MINUS, CONCAT, ESPACEDCONCAT),
-        ('left', MULTIPLY, DIVIDE, MODULE),
-        ('right', POWER, ASTERPOWER),
-        ('right', NOT)
-    )
+    # Precedencia de operadores
+    precedence = (('left', OR, AND), 
+                  ('left', EQUAL, NOT_EQUAL),
+                  ('left', LESS_THAN, GREATER_THAN, LESS_EQUAL, GREATER_EQUAL),
+                  ('left', PLUS, MINUS, CONCAT, ESPACEDCONCAT),
+                  ('left', MULTIPLY, DIVIDE, MODULE),
+                  ('right', POWER, ASTERPOWER), 
+                  ('right', NOT))
 
+    # Regla inicial
     @_('program_decl_list')
     def program(self, p):
-        pass
-
-    @_( 'inst_wrapper',
-        'program_level_decl program_decl_list',
-        'empty')
+        print("program "+str([v for v in p]))
+        # return S(p)
+        
+    # Lista de declaraciones del programa
+    @_('inst_wrapper', 
+       'program_level_decl program_decl_list', 
+       'empty')
     def program_decl_list(self, p):
-        pass
+        print("program_decl_list "+str([v for v in p]))
+        # return Program(p)
 
-    @_( 'type_declaration',
-        'function_declaration',
-        'protocol_declaration')
+    # Declaraciones a nivel de programa
+    @_('type_declaration', 
+       'function_declaration', 
+       'protocol_declaration')
     def program_level_decl(self, p):
+        print("program_level_decl "+str([v for v in p]))
         pass
 
-    @_( 'inst SEMICOLON',
-        'inst SEMICOLON inst_list')
+    # Lista de instrucciones
+    @_('inst SEMICOLON', 
+       'inst SEMICOLON inst_list')
     def inst_list(self, p):
+        print("inst_list "+str([v for v in p]))
         pass
 
-    @_( 'inst',
-        'inst SEMICOLON')
+    # Instrucción con o sin punto y coma
+    @_('inst', 
+       'inst SEMICOLON')
     def inst_wrapper(self, p):
+        print("inst_wrapper "+str([v for v in p]))
         pass
 
-    @_( 'scope',
-        'flux_control',
-        'expression',
-        'LPAREN var_dec RPAREN')
+    # Instrucción
+    @_('scope', 
+       'flux_control', 
+       'expression', 
+       'LPAREN var_dec RPAREN')
     def inst(self, p):
+        print("inst "+str([v for v in p]))
         pass
 
+    # Declaración de variable
     @_('LET var_init_list IN var_decl_expr')
     def var_dec(self, p):
+        print("var_dec "+str([v for v in p]))
         pass
 
-    @_( 'scope',
-        'flux_control',
-        'expression',
-        'LPAREN var_dec RPAREN')
+    # Expresión de declaración de variable
+    @_('scope', 
+       'flux_control', 
+       'expression', 
+       'LPAREN var_dec RPAREN')
     def var_decl_expr(self, p):
+        print("var_decl_expr "+str([v for v in p]))
         pass
 
-    @_( 'var_init',
-        'var_init COMMA var_init_list')
+    # Lista de inicializaciones de variables
+    @_('var_init', 
+       'var_init COMMA var_init_list')
     def var_init_list(self, p):
+        print("var_init_list "+str([v for v in p]))
         pass
 
-    @_( 'identifier ASSIGN inst',
-        'identifier ASSIGN inst type_downcast')
+    # Inicialización de variable
+    @_('identifier ASSIGN inst', 
+       'identifier ASSIGN inst type_downcast')
     def var_init(self, p):
+        print("var_init "+str([v for v in p]))
         pass
 
-    @_( 'identifier',
-        'identifier COMMA id_list')
-    def id_list(self, p):
-        pass
-
-    @_( 'atom',
-        'fully_typed_param')
+    # Identificador o parámetro completamente tipado
+    @_('atom', 
+       'fully_typed_param')
     def identifier(self, p):
+        print("identifier "+str([v for v in p]))
         pass
 
-
+    # Parámetro completamente tipado
     @_('IDENTIFIER type_anotation')
     def fully_typed_param(self, p):
+        print("fully_typed_param "+str([v for v in p]))
         pass
 
-    @_( 'COLON IDENTIFIER',
-        'COLON NUMBER_TYPE',
-        'COLON BOOLEAN_TYPE')
+    # Anotación de tipo
+    @_('COLON IDENTIFIER', 
+       'COLON NUMBER_TYPE', 
+       'COLON BOOLEAN_TYPE')
     def type_anotation(self, p):
+        print("type_anotation "+str([v for v in p]))
         pass
 
-    @_( 'LBRACE inst_list RBRACE',
-        'LBRACE RBRACE')
+    # Alcance
+    @_('LBRACE inst_list RBRACE', 
+       'LBRACE RBRACE')
     def scope(self, p):
+        print("scope "+str([v for v in p]))
         pass
 
+    # Expresión
     @_('aritmetic_operation')
     def expression(self, p):
+        print("expression "+str([v for v in p]))
         pass
 
-    @_( 'atom CONCAT expression',
-        'atom ESPACEDCONCAT expression')
+    @_('atom CONCAT expression', 
+       'atom ESPACEDCONCAT expression')
     def expression(self, p):
+        print("expression "+str([v for v in p]))
         pass
 
     @_('var_asign')
     def expression(self, p):
+        print("expression "+str([v for v in p]))
         pass
 
     @_('var_dec')
     def expression(self, p):
+        print("expression "+str([v for v in p]))
         pass
 
-    @_( 'term PLUS aritmetic_operation',
-        'term MINUS aritmetic_operation',
-        'term')
+    # Operación aritmética
+    @_('term PLUS aritmetic_operation', 
+       'term MINUS aritmetic_operation', 
+       'term')
     def aritmetic_operation(self, p):
+        print("aritmetic_operation "+str([v for v in p]))
         pass
 
-    @_( 'factor MULTIPLY term',
-        'factor DIVIDE term',
-        'factor MODULE term',
-        'factor')
+    # Término
+    @_('factor MULTIPLY term', 
+       'factor DIVIDE term', 
+       'factor MODULE term', 'factor')
     def term(self, p):
+        print("term "+str([v for v in p]))
         pass
 
-    @_( 'factor POWER base_exponent',
-        'factor ASTERPOWER base_exponent',
-        'base_exponent')
+    # Factor
+    @_('factor POWER base_exponent', 
+       'factor ASTERPOWER base_exponent', 
+       'base_exponent')
     def factor(self, p):
+        print("factor "+str([v for v in p]))
         pass
 
-    @_('atom')
+    # Base del exponente
+    @_('identifier')
     def base_exponent(self, p):
+        print("base_exponent "+str([v for v in p]))
         pass
 
     @_('LPAREN aritmetic_operation RPAREN')
     def base_exponent(self, p):
+        print("base_exponent "+str([v for v in p]))
         pass
 
-
-    @_( 'NUMBER',
-        'STRING',
-        'function_call',
-        'var_use',
-        'vector',
-        'var_method',
-        'type_instanciation',
-        'boolean_value',
-        'build_in_functions', 
-        'build_in_consts')
+    # Átomo
+    @_('NUMBER', 
+       'STRING', 
+       'function_call', 
+       'var_use', 
+       'vector', 
+       'var_method',
+       'type_instanciation', 
+       'boolean_value', 
+       'build_in_functions', 
+       'build_in_consts')
     def atom(self, p):
+        print("atom "+str([v for v in p]))
         pass
 
-    @_( 'var_use DEST_ASSIGN expression',
-        'var_use ASSIGN expression')
+    # Asignación de variable
+    @_('var_use DEST_ASSIGN expression', 
+       'var_use ASSIGN expression')
     def var_asign(self, p):
+        print("var_asign "+str([v for v in p]))
         pass
 
-    @_( 'func_decl_id LPAREN id_list RPAREN function_full_declaration',
-        'func_decl_id LPAREN RPAREN function_full_declaration',
-        'func_decl_id LPAREN id_list RPAREN function_full_declaration SEMICOLON',
-        'func_decl_id LPAREN RPAREN function_full_declaration SEMICOLON',
-        'func_decl_id LPAREN id_list RPAREN function_inline_declaration',
-        'func_decl_id LPAREN RPAREN function_inline_declaration')
+    # Declaración de función
+    @_('func_decl_id parameters function_full_declaration',
+       'func_decl_id LPAREN RPAREN function_full_declaration',
+       'func_decl_id parameters function_full_declaration SEMICOLON',
+       'func_decl_id LPAREN RPAREN function_full_declaration SEMICOLON',
+       'func_decl_id parameters function_inline_declaration',
+       'func_decl_id LPAREN RPAREN function_inline_declaration')
     def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
         pass
 
+    # Identificador de declaración de función
     @_('FUNCTION IDENTIFIER')
     def func_decl_id(self, p):
+        print("func_decl_id "+str([v for v in p]))
         pass
 
+    # Declaración completa de función
     @_('scope')
     def function_full_declaration(self, p):
+        print("function_full_declaration "+str([v for v in p]))
         pass
 
-
-
-    @_( 'RETURN inst SEMICOLON',
-        'type_anotation RETURN inst SEMICOLON')
+    # Declaración inline de función
+    @_('RETURN inst SEMICOLON', 
+       'type_anotation RETURN inst SEMICOLON')
     def function_inline_declaration(self, p):
+        print("function_inline_declaration "+str([v for v in p]))
         pass
 
-    @_( 'IF inline_conditional',
-        'IF full_conditional')
+    # Condicional
+    @_('IF inline_conditional', 
+       'IF full_conditional')
     def conditional(self, p):
+        print("conditional "+str([v for v in p]))
         pass
 
     @_('LPAREN conditional_expression RPAREN expression else_elif_statement')
     def inline_conditional(self, p):
+        print("inline_conditional "+str([v for v in p]))
         pass
 
     @_('LPAREN conditional_expression RPAREN scope else_elif_statement')
     def full_conditional(self, p):
+        print("full_conditional "+str([v for v in p]))
         pass
 
-    @_( 'ELIF inline_conditional',
-        'ELIF full_conditional')
+    # Sentencia else o elif
+    @_('ELIF inline_conditional', 
+       'ELIF full_conditional')
     def else_elif_statement(self, p):
+        print("else_elif_statement "+str([v for v in p]))
         pass
 
-    @_( 'ELSE inline_else',
-        'ELSE full_else')
+    @_('ELSE inline_else', 
+       'ELSE full_else')
     def else_elif_statement(self, p):
+        print("else_elif_statement "+str([v for v in p]))
         pass
 
+    # Else inline
     @_('expression')
     def inline_else(self, p):
+        print("inline_else "+str([v for v in p]))
         pass
 
+    # Else completo
     @_('scope')
     def full_else(self, p):
+        print("full_else "+str([v for v in p]))
         pass
 
-    @_( 'WHILE LPAREN conditional_expression RPAREN scope',
-        'WHILE LPAREN conditional_expression RPAREN expression',
-        'WHILE LPAREN expression RPAREN scope',
-        'WHILE LPAREN expression RPAREN expression')
+    # Bucle while
+    @_('WHILE LPAREN conditional_expression RPAREN scope',
+       'WHILE LPAREN conditional_expression RPAREN expression',
+       'WHILE LPAREN expression RPAREN scope',
+       'WHILE LPAREN expression RPAREN expression')
     def while_loop(self, p):
+        print("while_loop "+str([v for v in p]))
         pass
 
-    @_( 'FOR LPAREN identifier IN expression RPAREN scope',
-        'FOR LPAREN identifier IN expression RPAREN expression')
+    # Bucle for
+    @_('FOR LPAREN identifier IN expression RPAREN scope',
+       'FOR LPAREN identifier IN expression RPAREN expression')
     def for_loop(self, p):
+        print("for_loop "+str([v for v in p]))
         pass
 
-    @_( 'condition AND conditional_expression',
-        'condition OR conditional_expression',
-        'NOT condition',
-        'condition')
+    # Expresión condicional
+    @_('condition AND conditional_expression', 
+       'condition OR conditional_expression', 
+       'NOT condition', 
+       'condition')
     def conditional_expression(self, p):
+        print("conditional_expression "+str([v for v in p]))
         pass
 
-    @_( 'comparation',  
-        'IDENTIFIER type_conforming',
-        'LPAREN conditional_expression RPAREN')
+    # Condición
+    @_('comparation', 
+       'IDENTIFIER type_conforming', 
+       'LPAREN conditional_expression RPAREN')
     def condition(self, p):
+        print("condition "+str([v for v in p]))
         pass
 
-    @_( 'expression GREATER_THAN expression',
-        'expression LESS_THAN expression',
-        'expression GREATER_EQUAL expression',
-        'expression LESS_EQUAL expression',
-        'expression EQUAL expression',
-        'expression NOT_EQUAL expression')
+    # Comparación
+    @_('expression GREATER_THAN expression', 
+       'expression LESS_THAN expression',
+       'expression GREATER_EQUAL expression', 
+       'expression LESS_EQUAL expression',
+       'expression EQUAL expression', 
+       'expression NOT_EQUAL expression')
     def comparation(self, p):
+        print("comparation "+str([v for v in p]))
         pass
 
-    @_( 'TRUE',
-        'FALSE')
+    # Valor booleano
+    @_('TRUE', 
+       'FALSE')
     def boolean_value(self, p):
+        print("boolean_value "+str([v for v in p]))
         pass
 
-    @_( 'TYPE IDENTIFIER constructor decl_body',
-        'TYPE IDENTIFIER constructor inherits_type decl_body',
-        'TYPE IDENTIFIER constructor decl_body SEMICOLON',
-        'TYPE IDENTIFIER constructor inherits_type decl_body SEMICOLON')
+    # Declaración de tipo
+    @_('TYPE IDENTIFIER parameters decl_body',
+       'TYPE IDENTIFIER parameters inherits_type decl_body',
+       'TYPE IDENTIFIER parameters decl_body SEMICOLON',
+       'TYPE IDENTIFIER parameters inherits_type decl_body SEMICOLON',
+       'TYPE IDENTIFIER decl_body', 'TYPE IDENTIFIER inherits_type decl_body',
+       'TYPE IDENTIFIER decl_body SEMICOLON',
+       'TYPE IDENTIFIER inherits_type decl_body SEMICOLON')
     def type_declaration(self, p):
+        print("type_declaration "+str([v for v in p]))
         pass
 
-    @_( 'LPAREN id_list RPAREN',
-        'LPAREN param_list RPAREN',
-        'LPAREN RPAREN',
-        'empty')
-    def constructor(self, p):
+    # Parámetros
+    @_('LPAREN arguments_list RPAREN')
+    def parameters(self, p):
+        print("parameters "+str([v for v in p]))
         pass
 
-    @_('INHERITS IDENTIFIER constructor')
+    # Herencia de tipo
+    @_('INHERITS IDENTIFIER', 
+       'INHERITS IDENTIFIER parameters')
     def inherits_type(self, p):
+        print("inherits_type "+str([v for v in p]))
         pass
 
-    @_( 'LBRACE RBRACE',
-        'LBRACE decl_list RBRACE')
+    # Cuerpo de la declaración
+    @_('LBRACE RBRACE', 
+       'LBRACE decl_list RBRACE')
     def decl_body(self, p):
+        print("decl_body "+str([v for v in p]))
         pass
 
-    @_( 'decl SEMICOLON',
-        'decl SEMICOLON decl_list')
+    # Lista de declaraciones
+    @_('decl SEMICOLON', 'decl SEMICOLON decl_list')
     def decl_list(self, p):
+        print("decl_list "+str([v for v in p]))
         pass
 
-    @_( 'atribute_declaration',
-        'method_declaration')
+    # Declaración
+    @_('atribute_declaration', 
+       'method_declaration')
     def decl(self, p):
+        print("decl "+str([v for v in p]))
         pass
 
-    @_( 'identifier ASSIGN expression',
-        'identifier ASSIGN expression type_downcast')
+    # Declaración de atributo
+    @_('identifier ASSIGN expression', 
+       'identifier ASSIGN expression type_downcast')
     def atribute_declaration(self, p):
+        print("atribute_declaration "+str([v for v in p]))
         pass
 
-    @_( 'IDENTIFIER LPAREN id_list RPAREN RETURN expression',
-        'IDENTIFIER LPAREN id_list RPAREN function_full_declaration',
+    # Declaración de método
+    @_( 'IDENTIFIER parameters RETURN expression',
+        'IDENTIFIER parameters function_full_declaration',
         'IDENTIFIER LPAREN RPAREN RETURN expression',
         'IDENTIFIER LPAREN RPAREN function_full_declaration',
-        'IDENTIFIER LPAREN id_list RPAREN type_anotation RETURN expression',
-        'IDENTIFIER LPAREN id_list RPAREN type_anotation function_full_declaration',
+        'IDENTIFIER parameters type_anotation RETURN expression',
+        'IDENTIFIER parameters type_anotation function_full_declaration',
         'IDENTIFIER LPAREN RPAREN type_anotation RETURN expression',
         'IDENTIFIER LPAREN RPAREN type_anotation RETURN conditional_expression',
         'IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration')
     def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
         pass
 
-    @_( 'IDENTIFIER LPAREN param_list RPAREN',
-        'IDENTIFIER LPAREN RPAREN')
+    # Llamada a función
+    @_('IDENTIFIER LPAREN arguments_list RPAREN', 
+       'IDENTIFIER LPAREN RPAREN')
     def function_call(self, p):
+        print("function_call "+str([v for v in p]))
         pass
 
-    @_( 'NEW IDENTIFIER LPAREN param_list RPAREN',
-        'NEW IDENTIFIER LPAREN RPAREN')
+    # Instanciación de tipo
+    @_('NEW IDENTIFIER LPAREN arguments_list RPAREN', 
+       'NEW IDENTIFIER LPAREN RPAREN')
     def type_instanciation(self, p):
+        print("type_instanciation "+str([v for v in p]))
         pass
 
-    @_( 'IS identifier')
+    # Conformidad de tipo
+    @_('IS identifier')
     def type_conforming(self, p):
+        print("type_conforming "+str([v for v in p]))
         pass
 
-    @_( 'AS identifier')
+    # Downcast de tipo
+    @_('AS identifier')
     def type_downcast(self, p):
+        print("type_downcast "+str([v for v in p]))
         pass
 
-    @_( 'param',
-        'param COMMA param_list')
-    def param_list(self, p):
+    # Lista de argumentos
+    @_('argument', 
+       'argument COMMA arguments_list')
+    def arguments_list(self, p):
+        print("arguments_list "+str([v for v in p]))
         pass
 
-    @_( 'expression',
-        'conditional')
-    def param(self, p):
+    # Argumento
+    @_('expression', 
+       'conditional')
+    def argument(self, p):
+        print("argument "+str([v for v in p]))
         pass
 
-    @_( 'IDENTIFIER',
-        'atom LBRACKET expression RBRACKET',
-        'var_attr')
+    # Uso de variable
+    @_('IDENTIFIER', 
+       'atom LBRACKET expression RBRACKET', 
+       'var_attr')
     def var_use(self, p):
+        print("var_use "+str([v for v in p]))
         pass
 
-    @_( 'IDENTIFIER DOT IDENTIFIER',
-        'IDENTIFIER DOT var_attr')
+    # Atributo de variable
+    @_('IDENTIFIER DOT IDENTIFIER', 
+       'IDENTIFIER DOT var_attr')
     def var_attr(self, p):
+        print("var_attr "+str([v for v in p]))
         pass
 
+    # Método de variable
     @_('IDENTIFIER DOT function_call')
     def var_method(self, p):
+        print("var_method "+str([v for v in p]))
         pass
 
-    @_( 'while_loop',
-        'conditional',
-        'for_loop')
+    # Control de flujo
+    @_('while_loop', 
+       'conditional', 
+       'for_loop')
     def flux_control(self, p):
+        print("flux_control "+str([v for v in p]))
         pass
 
-    @_( 'PROTOCOL IDENTIFIER protocol_body',
-        'PROTOCOL IDENTIFIER protocol_body SEMICOLON',
-        'PROTOCOL IDENTIFIER EXTENDS IDENTIFIER protocol_body',
-        'PROTOCOL IDENTIFIER EXTENDS IDENTIFIER protocol_body SEMICOLON')
+    # Declaración de protocolo
+    @_('PROTOCOL IDENTIFIER protocol_body',
+       'PROTOCOL IDENTIFIER protocol_body SEMICOLON',
+       'PROTOCOL IDENTIFIER EXTENDS IDENTIFIER protocol_body',
+       'PROTOCOL IDENTIFIER EXTENDS IDENTIFIER protocol_body SEMICOLON')
     def protocol_declaration(self, p):
+        print("protocol_declaration "+str([v for v in p]))
         pass
 
+    # Cuerpo del protocolo
     @_('LBRACE virtual_method_list RBRACE')
     def protocol_body(self, p):
+        print("protocol_body "+str([v for v in p]))
         pass
 
-    @_( 'virtual_method SEMICOLON',
-        'virtual_method SEMICOLON virtual_method_list')
+    # Lista de métodos virtuales
+    @_('virtual_method SEMICOLON', 
+       'virtual_method SEMICOLON virtual_method_list')
     def virtual_method_list(self, p):
+        print("virtual_method_list "+str([v for v in p]))
         pass
 
-
-    @_( 'IDENTIFIER LPAREN RPAREN type_anotation',
-        'IDENTIFIER LPAREN fully_typed_params RPAREN type_anotation')
+    # Método virtual
+    @_('IDENTIFIER parameters type_anotation', 
+       'IDENTIFIER LPAREN RPAREN type_anotation')
     def virtual_method(self, p):
+        print("virtual_method "+str([v for v in p]))
         pass
 
-    @_( 'fully_typed_param',
-        'fully_typed_param COMMA fully_typed_params')
-    def fully_typed_params(self, p):
-        pass
-
+    # Vector
     @_('LBRACKET vector_decl RBRACKET')
     def vector(self, p):
+        print("vector "+str([v for v in p]))
         pass
 
-    @_( 'param_list',
-        'expression SINCETHAT identifier IN expression',
-        'expression OR identifier IN expression')
+    # Declaración de vector
+    @_('arguments_list', 
+       'expression SINCETHAT identifier IN expression',
+       'expression OR identifier IN expression')
     def vector_decl(self, p):
+        print("vector_decl "+str([v for v in p]))
         pass
 
-    @_( 'RANGE LPAREN param COMMA param RPAREN' )
+    # Rango
+    @_('RANGE LPAREN argument COMMA argument RPAREN')
     def build_in_range(self, p):
+        print("build_in_range "+str([v for v in p]))
         pass
 
-    @_( 'PRINT LPAREN param RPAREN' )
+    # Imprimir
+    @_('PRINT LPAREN argument RPAREN')
     def build_in_print(self, p):
+        print("build_in_print "+str([v for v in p]))
         pass
 
-    @_( 'build_in_range',
-        'build_in_print')
+    # Funciones integradas
+    @_('build_in_range', 
+       'build_in_print')
     def build_in_functions(self, p):
+        print("build_in_functions "+str([v for v in p]))
         pass
 
-    @_( 'SQRT LPAREN param RPAREN',
-        'SIN LPAREN param RPAREN',
-        'COS LPAREN param RPAREN',
-        'EXP LPAREN param RPAREN')
+    @_('SQRT LPAREN argument RPAREN', 
+       'SIN LPAREN argument RPAREN',
+       'COS LPAREN argument RPAREN', 
+       'EXP LPAREN argument RPAREN')
     def build_in_functions(self, p):
+        print("build_in_functions "+str([v for v in p]))
         pass
 
-    @_( 'LOG LPAREN param COMMA param RPAREN')
+    @_('LOG LPAREN argument COMMA argument RPAREN')
     def build_in_functions(self, p):
+        print("build_in_functions "+str([v for v in p]))
         pass
 
-    @_( 'RAND LPAREN RPAREN')
+    @_('RAND LPAREN RPAREN')
     def build_in_functions(self, p):
+        print("build_in_functions "+str([v for v in p]))
         pass
 
-    @_( 'PI_CONST',
-        'E_CONST')
+    # Constantes integradas
+    @_('PI_CONST', 
+       'E_CONST')
     def build_in_consts(self, p):
+        print("build_in_consts "+str([v for v in p]))
         pass
 
+    # Regla vacía
     @_('')
     def empty(self, p):
+        print("empty "+str([v for v in p]))
         pass
 
+    # Manejo de errores
     def error(self, p):
         print(p)
         lineno = p.lineno if p else 'EOF'
         value = repr(p.value) if p else 'EOF'
         print(f'{lineno}: Syntax error at {value} {p}')
-
-# To use the parser
-if __name__ == '__main__':
-    lexer = HulkLexer(None)
-    parser = HulkParser()
-    data = '''
-
-
-function operate(x, y) {
-    print(x + y);
-    print(x - y);
-    print(x * y);
-    print(x / y);
-}
-
-
-    '''
-
-    result = parser.parse(lexer.tokenize(data))
-    print(result)

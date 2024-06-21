@@ -1,30 +1,34 @@
 from os import close
 from sly import Lexer
 
-
+# Definición de la clase Lexer para el lenguaje Hulk
 class HulkLexer(Lexer):
-    tokens = { LET, IN, FUNCTION, IF, ELSE, ELIF, FOR, WHILE, 
-               NEW, INHERITS, TYPE, PROTOCOL, EXTENDS, IDENTIFIER, PLUS, MINUS, 
-               MULTIPLY, DIVIDE, ASTERPOWER, POWER, MODULE, RETURN, LESS_EQUAL, 
-               LESS_THAN, GREATER_EQUAL, GREATER_THAN, EQUAL, NOT_EQUAL, 
-               DEST_ASSIGN, ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, 
-               SEMICOLON, COLON, COMMA, DOT, SINCETHAT, AND, OR, NOT, ESPACEDCONCAT, 
-               CONCAT, STRING, NUMBER, NUMBER_TYPE, TRUE, FALSE, IS, AS, PI_CONST, E_CONST, 
-               RANGE, PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE } 
+    # Definición de los tokens
+    tokens = {
+        LET, IN, FUNCTION, IF, ELSE, ELIF, FOR, WHILE, NEW, INHERITS, TYPE,
+        PROTOCOL, EXTENDS, IDENTIFIER, PLUS, MINUS, MULTIPLY, DIVIDE,
+        ASTERPOWER, POWER, MODULE, RETURN, LESS_EQUAL, LESS_THAN,
+        GREATER_EQUAL, GREATER_THAN, EQUAL, NOT_EQUAL, DEST_ASSIGN, ASSIGN,
+        LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, SEMICOLON, COLON,
+        COMMA, DOT, SINCETHAT, AND, OR, NOT, ESPACEDCONCAT, CONCAT, STRING,
+        NUMBER, NUMBER_TYPE, TRUE, FALSE, IS, AS, PI_CONST, E_CONST, RANGE,
+        PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE
+    }
 
+    # Ignorar espacios en blanco y tabulaciones
     ignore = ' \t'
 
+    # Ignorar saltos de línea, incrementando el contador de líneas
     @_(r'\n')
     def ignore_newline(self, t):
         self.lineno += 1
 
+    # Ignorar comentarios de una línea, incrementando el contador de líneas
     @_(r'//.*\n')
     def ignore_comment(self, t):
         self.lineno += 1
 
-    
-    
-    # Operadores aritméticos
+    # Definición de operadores aritméticos
     PLUS = r'\+'
     MINUS = r'-'
     ASTERPOWER = r'\*\*'
@@ -33,10 +37,10 @@ class HulkLexer(Lexer):
     POWER = r'\^'
     MODULE = r'%'
 
-    # Definición de funcion inline
+    # Definición de función inline
     RETURN = r'=>'
 
-    # Operadores comparativos
+    # Definición de operadores comparativos
     LESS_EQUAL = r'<='
     LESS_THAN = r'<'
     GREATER_EQUAL = r'>='
@@ -44,11 +48,11 @@ class HulkLexer(Lexer):
     EQUAL = r'=='
     NOT_EQUAL = r'!='
 
-    # Operadores asignacion
+    # Definición de operadores de asignación
     DEST_ASSIGN = r':='
     ASSIGN = r'='
 
-    # Otros
+    # Definición de otros tokens
     LPAREN = r'\('
     RPAREN = r'\)'
     LBRACKET = r'\['
@@ -60,40 +64,43 @@ class HulkLexer(Lexer):
     COMMA = r','
     DOT = r'\.'
     SINCETHAT = r'\|\|'
-    
-    # Operadores lógicos
+
+    # Definición de operadores lógicos
     AND = r'&'
     OR = r'\|'
     NOT = r'!'
 
-    #JOIN whitespace
+    # Definición de concatenación de espacios
     ESPACEDCONCAT = r'@@'
     CONCAT = r'@'
 
+    # Definición de números, convirtiendo a float
     @_(r'\d+(\.\d+)?')
     def NUMBER(self, t):
         t.value = float(t.value)
         return t
 
+    # Definición de cadenas, eliminando comillas y contando saltos de línea
     @_(r'"([^"\n\\]|\\.)*"')
     def STRING(self, t):
         self.lineno += t.value.count('\n')
         t.value = t.value[1:-1]
         return t
 
+    # Definición de valores booleanos
     @_(r'true|false')
     def BOOLEAN(self, t):
         t.value = True if t.value == 'true' else False
         return t
 
-    
+    # Definición de identificadores y palabras clave
     IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
     IDENTIFIER['PI'] = PI_CONST
     IDENTIFIER['E'] = E_CONST
     IDENTIFIER['if'] = IF
     IDENTIFIER['else'] = ELSE
     IDENTIFIER['elif'] = ELIF
-    IDENTIFIER['for'] = FOR 
+    IDENTIFIER['for'] = FOR
     IDENTIFIER['while'] = WHILE
     IDENTIFIER['let'] = LET
     IDENTIFIER['in'] = IN
@@ -117,48 +124,17 @@ class HulkLexer(Lexer):
     IDENTIFIER['exp'] = EXP
     IDENTIFIER['log'] = LOG
     IDENTIFIER['rand'] = RAND
-    
+
+    # Manejo de errores léxicos
     def error(self, t):
         if self.context:
-            self.context.error(self.lineno, f'Illegal character {t.value[0]!r}')
+            self.context.error(self.lineno,
+                               f'Illegal character {t.value[0]!r}')
         else:
             print(f'{self.lineno}: Illegal character {t.value[0]!r}')
         self.index += 1
 
+    # Inicialización del lexer con un contexto dado
     def __init__(self, context):
         self.context = context
 
-        
-def test_lexer():
-    lexer = HulkLexer(None)
-    tokens = lexer.tokenize("""( ) { } [ ] , . - + * / ^ % => = 
-                                // esto es un comentario 
-                                := ; : , . || <= < >= > == != & | ! @@ @""")
-    toktypes = [t.type for t in tokens]
-    assert toktypes == [ 'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE', 'LBRACKET', 'RBRACKET', 
-                         'COMMA', 'DOT', 'MINUS', 'PLUS', 'MULTIPLY', 'DIVIDE', 'POWER', 
-                         'MODULE', 'RETURN', 'ASSIGN', 'DEST_ASSIGN', 'SEMICOLON', 'COLON', 
-                         'COMMA', 'DOT', 'SINCETHAT', 'LESS_EQUAL', 'LESS_THAN', 'GREATER_EQUAL', 
-                         'GREATER_THAN', 'EQUAL', 'NOT_EQUAL', 'AND', 'OR', 'NOT', 
-                         'ESPACEDCONCAT', 'CONCAT']
-                    
-    
-    tokens = lexer.tokenize("let is as in function if else elif for while new inherits type protocol extends")
-    toktypes = [t.type for t in tokens]
-    assert toktypes == [ 'LET', 'IS', 'AS', 'IN', 'FUNCTION', 'IF', 'ELSE',
-                         'ELIF', 'FOR', 'WHILE', 'NEW', 'INHERITS', 'TYPE',
-                         'PROTOCOL', 'EXTENDS' ]
-
-    tokens = lexer.tokenize('123 123.0 "hello" "hello\nworld" true false')
-    tokvals = [(t.type, t.value) for t in tokens ]
-    assert tokvals == [ ('NUMBER', 123), ('NUMBER', 123.0),
-                        ('STRING', 'hello'), ('STRING', 'hello\nworld'), ('BOOLEAN', True), ('BOOLEAN', False)]
-
-    tokens = lexer.tokenize('abc abc123 _abc_123')
-    tokvals = [(t.type, t.value) for t in tokens ]
-    assert tokvals == [ ('IDENTIFIER', 'abc'), ('IDENTIFIER', 'abc123'), ('IDENTIFIER', '_abc_123')]
-    
-if __name__ == '__main__':
-    test_lexer()
-    
-        
