@@ -1,5 +1,5 @@
 from sly import Parser
-from lexer import HulkLexer
+from cmp.lexer_h import HulkLexer
 
 # Definición de la clase Parser para el lenguaje Hulk
 class HulkParser(Parser):
