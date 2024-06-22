@@ -1,5 +1,6 @@
 from sly import Parser
 from cmp.lexer_h import HulkLexer
+from cmp.ast_h import *
 
 # Definición de la clase Parser para el lenguaje Hulk
 class HulkParser(Parser):
@@ -19,16 +20,17 @@ class HulkParser(Parser):
     # Regla inicial
     @_('program_decl_list')
     def program(self, p):
-        print("program "+str([v for v in p]))
-        # return S(p)
-        
+        print("program "+str([str(v) for v in p]))
+        return Program(p.program_decl_list)
+
     # Lista de declaraciones del programa
-    @_('inst_wrapper', 
+    @_(#'inst_wrapper', 
+       'inst_list',
        'program_level_decl program_decl_list', 
        'empty')
     def program_decl_list(self, p):
         print("program_decl_list "+str([v for v in p]))
-        # return Program(p)
+        return p[0]
 
     # Declaraciones a nivel de programa
     @_('type_declaration', 
@@ -36,30 +38,39 @@ class HulkParser(Parser):
        'protocol_declaration')
     def program_level_decl(self, p):
         print("program_level_decl "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Lista de instrucciones
-    @_('inst SEMICOLON', 
-       'inst SEMICOLON inst_list')
+    @_( 'inst', #**************************************************
+        'inst SEMICOLON', 
+        'inst SEMICOLON inst_list')
     def inst_list(self, p):
         print("inst_list "+str([v for v in p]))
-        pass
+        if len(p)==1 or len(p)==2:
+            return p[0]
+        else: return [p[0]]+p[2]
+        
+        
 
     # Instrucción con o sin punto y coma
-    @_('inst', 
+    '''@_('inst', 
        'inst SEMICOLON')
     def inst_wrapper(self, p):
         print("inst_wrapper "+str([v for v in p]))
-        pass
+        pass'''
 
     # Instrucción
-    @_('scope', 
+    @_(#'scope', 
+       'scope_list',
        'flux_control', 
        'expression', 
        'LPAREN var_dec RPAREN')
     def inst(self, p):
         print("inst "+str([v for v in p]))
-        pass
+        if len(p)==3:
+            return p[1]
+        else: 
+            return p[0]
 
     # Declaración de variable
     @_('LET var_init_list IN var_decl_expr')
@@ -68,7 +79,7 @@ class HulkParser(Parser):
         pass
 
     # Expresión de declaración de variable
-    @_('scope', 
+    @_('scope_list', 
        'flux_control', 
        'expression', 
        'LPAREN var_dec RPAREN')
@@ -95,7 +106,7 @@ class HulkParser(Parser):
        'fully_typed_param')
     def identifier(self, p):
         print("identifier "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Parámetro completamente tipado
     @_('IDENTIFIER type_anotation')
@@ -110,7 +121,13 @@ class HulkParser(Parser):
     def type_anotation(self, p):
         print("type_anotation "+str([v for v in p]))
         pass
-
+    
+    @_( 'scope', #*******************************************************
+        'scope scope_list')
+    def scope_list(self, p):
+        print("scope_list "+str([v for v in p]))
+        pass
+        
     # Alcance
     @_('LBRACE inst_list RBRACE', 
        'LBRACE RBRACE')
@@ -121,8 +138,8 @@ class HulkParser(Parser):
     # Expresión
     @_('aritmetic_operation')
     def expression(self, p):
-        print("expression "+str([v for v in p]))
-        pass
+        print("expression "+str([str(v) for v in p]))
+        return p[0]
 
     @_('atom CONCAT expression', 
        'atom ESPACEDCONCAT expression')
@@ -146,7 +163,13 @@ class HulkParser(Parser):
        'term')
     def aritmetic_operation(self, p):
         print("aritmetic_operation "+str([v for v in p]))
-        pass
+        if len(p)==1:
+            return p[0]
+        elif p[1]=='+':
+            return Add(p[0],p[2])
+        elif p[1]=='-':
+            return Sub(p[0],p[2])
+        
 
     # Término
     @_('factor MULTIPLY term', 
@@ -154,7 +177,14 @@ class HulkParser(Parser):
        'factor MODULE term', 'factor')
     def term(self, p):
         print("term "+str([v for v in p]))
-        pass
+        if len(p)==1:
+            return p[0]
+        elif p[1]=='*':
+            return Mult(p[0],p[2])
+        elif p[1]=='/':
+            return Div(p[0],p[2])
+        elif p[1]=='%':
+            return Mod(p[0],p[2])  
 
     # Factor
     @_('factor POWER base_exponent', 
@@ -162,13 +192,18 @@ class HulkParser(Parser):
        'base_exponent')
     def factor(self, p):
         print("factor "+str([v for v in p]))
-        pass
+        if len(p)==1:
+            return p[0]
+        else: 
+            return Power(p[0],p[2])
+
+
 
     # Base del exponente
     @_('identifier')
     def base_exponent(self, p):
         print("base_exponent "+str([v for v in p]))
-        pass
+        return p[0]
 
     @_('LPAREN aritmetic_operation RPAREN')
     def base_exponent(self, p):
@@ -188,7 +223,7 @@ class HulkParser(Parser):
        'build_in_consts')
     def atom(self, p):
         print("atom "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Asignación de variable
     @_('var_use DEST_ASSIGN expression', 
@@ -215,7 +250,7 @@ class HulkParser(Parser):
         pass
 
     # Declaración completa de función
-    @_('scope')
+    @_('scope_list')
     def function_full_declaration(self, p):
         print("function_full_declaration "+str([v for v in p]))
         pass
@@ -264,7 +299,7 @@ class HulkParser(Parser):
         pass
 
     # Else completo
-    @_('scope')
+    @_('scope_list')
     def full_else(self, p):
         print("full_else "+str([v for v in p]))
         pass
