@@ -24,8 +24,7 @@ class HulkParser(Parser):
         return Program(p.program_decl_list)
 
     # Lista de declaraciones del programa
-    @_(#'inst_wrapper', 
-       'inst_list',
+    @_('inst_list',
        'program_level_decl program_decl_list', 
        'empty')
     def program_decl_list(self, p):
@@ -46,22 +45,14 @@ class HulkParser(Parser):
         'inst SEMICOLON inst_list')
     def inst_list(self, p):
         print("inst_list "+str([v for v in p]))
-        if len(p)==1 or len(p)==2:
-            return p[0]
-        else: return [p[0]]+p[2]
+        return p[0]
         
         
 
-    # Instrucción con o sin punto y coma
-    '''@_('inst', 
-       'inst SEMICOLON')
-    def inst_wrapper(self, p):
-        print("inst_wrapper "+str([v for v in p]))
-        pass'''
+    
 
     # Instrucción
-    @_(#'scope', 
-       'scope_list',
+    @_('scope_list',
        'flux_control', 
        'expression', 
        'LPAREN var_dec RPAREN')
@@ -79,20 +70,23 @@ class HulkParser(Parser):
         pass
 
     # Expresión de declaración de variable
-    @_('scope_list', 
+    @_('scope', 
        'flux_control', 
        'expression', 
        'LPAREN var_dec RPAREN')
     def var_decl_expr(self, p):
         print("var_decl_expr "+str([v for v in p]))
-        pass
+        if len(p)==3:
+            return p[1]
+        else: 
+            return p[0]
 
     # Lista de inicializaciones de variables
     @_('var_init', 
        'var_init COMMA var_init_list')
     def var_init_list(self, p):
         print("var_init_list "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Inicialización de variable
     @_('identifier ASSIGN inst', 
@@ -120,13 +114,13 @@ class HulkParser(Parser):
        'COLON BOOLEAN_TYPE')
     def type_anotation(self, p):
         print("type_anotation "+str([v for v in p]))
-        pass
+        return p[1]
     
     @_( 'scope', #*******************************************************
         'scope scope_list')
     def scope_list(self, p):
         print("scope_list "+str([v for v in p]))
-        pass
+        return p[0]
         
     # Alcance
     @_('LBRACE inst_list RBRACE', 
@@ -150,12 +144,12 @@ class HulkParser(Parser):
     @_('var_asign')
     def expression(self, p):
         print("expression "+str([v for v in p]))
-        pass
+        return p[0]
 
     @_('var_dec')
     def expression(self, p):
         print("expression "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Operación aritmética
     @_('term PLUS aritmetic_operation', 
@@ -174,7 +168,8 @@ class HulkParser(Parser):
     # Término
     @_('factor MULTIPLY term', 
        'factor DIVIDE term', 
-       'factor MODULE term', 'factor')
+       'factor MODULE term', 
+       'factor')
     def term(self, p):
         print("term "+str([v for v in p]))
         if len(p)==1:
@@ -197,7 +192,7 @@ class HulkParser(Parser):
         else: 
             return Power(p[0],p[2])
 
-
+    
 
     # Base del exponente
     @_('identifier')
@@ -208,12 +203,10 @@ class HulkParser(Parser):
     @_('LPAREN aritmetic_operation RPAREN')
     def base_exponent(self, p):
         print("base_exponent "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Átomo
-    @_('NUMBER', 
-       'STRING', 
-       'function_call', 
+    @_('function_call', 
        'var_use', 
        'vector', 
        'var_method',
@@ -225,6 +218,14 @@ class HulkParser(Parser):
         print("atom "+str([v for v in p]))
         return p[0]
 
+    @_('STRING')
+    def atom(self, p):
+        print("string "+str([v for v in p]))
+        return String(p[0])
+    @_('NUMBER')
+    def atom(self, p):
+        print("Number"+str([v for v in p]))
+        return Number(p[0])
     # Asignación de variable
     @_('var_use DEST_ASSIGN expression', 
        'var_use ASSIGN expression')
@@ -250,10 +251,10 @@ class HulkParser(Parser):
         pass
 
     # Declaración completa de función
-    @_('scope_list')
+    @_('scope')
     def function_full_declaration(self, p):
         print("function_full_declaration "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Declaración inline de función
     @_('RETURN inst SEMICOLON', 
@@ -274,7 +275,7 @@ class HulkParser(Parser):
         print("inline_conditional "+str([v for v in p]))
         pass
 
-    @_('LPAREN conditional_expression RPAREN scope else_elif_statement')
+    @_('LPAREN conditional_expression RPAREN scope_list else_elif_statement')
     def full_conditional(self, p):
         print("full_conditional "+str([v for v in p]))
         pass
@@ -296,13 +297,13 @@ class HulkParser(Parser):
     @_('expression')
     def inline_else(self, p):
         print("inline_else "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Else completo
-    @_('scope_list')
+    @_('scope')
     def full_else(self, p):
         print("full_else "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Bucle while
     @_('WHILE LPAREN conditional_expression RPAREN scope',
@@ -371,7 +372,7 @@ class HulkParser(Parser):
     @_('LPAREN arguments_list RPAREN')
     def parameters(self, p):
         print("parameters "+str([v for v in p]))
-        pass
+        return p[1]
 
     # Herencia de tipo
     @_('INHERITS IDENTIFIER', 
@@ -398,7 +399,7 @@ class HulkParser(Parser):
        'method_declaration')
     def decl(self, p):
         print("decl "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Declaración de atributo
     @_('identifier ASSIGN expression', 
@@ -452,14 +453,14 @@ class HulkParser(Parser):
        'argument COMMA arguments_list')
     def arguments_list(self, p):
         print("arguments_list "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Argumento
     @_('expression', 
        'conditional')
     def argument(self, p):
         print("argument "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Uso de variable
     @_('IDENTIFIER', 
@@ -488,7 +489,7 @@ class HulkParser(Parser):
        'for_loop')
     def flux_control(self, p):
         print("flux_control "+str([v for v in p]))
-        pass
+        return p[0]
 
     # Declaración de protocolo
     @_('PROTOCOL IDENTIFIER protocol_body',
@@ -503,7 +504,7 @@ class HulkParser(Parser):
     @_('LBRACE virtual_method_list RBRACE')
     def protocol_body(self, p):
         print("protocol_body "+str([v for v in p]))
-        pass
+        return p[1]
 
     # Lista de métodos virtuales
     @_('virtual_method SEMICOLON', 
@@ -523,7 +524,7 @@ class HulkParser(Parser):
     @_('LBRACKET vector_decl RBRACKET')
     def vector(self, p):
         print("vector "+str([v for v in p]))
-        pass
+        return p[1]
 
     # Declaración de vector
     @_('arguments_list', 
@@ -550,7 +551,7 @@ class HulkParser(Parser):
        'build_in_print')
     def build_in_functions(self, p):
         print("build_in_functions "+str([v for v in p]))
-        pass
+        return p[0]
 
     @_('SQRT LPAREN argument RPAREN', 
        'SIN LPAREN argument RPAREN',
