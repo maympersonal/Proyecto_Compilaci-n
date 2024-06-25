@@ -1,6 +1,7 @@
 from io import FileIO
 from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
+from cmp.ast_h import HulkPrintVisitor
 import os
 
 
@@ -29,7 +30,8 @@ def hacer_lex(archivo, stop = False):
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        # Tokenizar el contenido del archivo
+        viever = HulkPrintVisitor()
+        # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
         #for token in tokens:
@@ -38,7 +40,12 @@ def hacer_lex(archivo, stop = False):
         #input()
         print()
         result = parser.parse(lexer.tokenize(contenido))
-        print(result)
+        v = viever.visit(result)
+        print()
+        print("AST = " + v)
+        print()
+        #print_visitor.visit(result)
+        #print(result)
         print(archivo)
         if stop:
             input()
@@ -61,6 +68,7 @@ def uno(archivo):
     
 #todos()
 uno("programs/shorts/Debug.hulk")
+#uno("programs/shorts/test7.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
 
