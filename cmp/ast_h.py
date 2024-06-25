@@ -1,14 +1,15 @@
-import cmp.visitor as visitor
-
+import cmp.visitor as visitor 
 import inspect
-
-
+import cmp.semantic as semantic
 
 class Node:
     def evaluate(self):
         raise NotImplementedError()
-    
-        
+
+class BinaryNode:
+    def evaluate(self):
+        raise NotImplementedError()
+          
 class Program(Node):
     def __init__(self, program_decl_list):
         super().__init__()
@@ -18,15 +19,6 @@ class Program(Node):
         decls = visitor.visit(self.program_decl_list)
         return f'({self.__class__.__name__} {decls})'
 
-class DeclList(Node):
-    def __init__(self, decls):
-        super().__init__()
-        self.decls = decls
-        
-    def print_visitor(self, visitor):
-        decls = visitor.visit(self.decls)
-        return f'({self.__class__.__name__} {decls})'
-        
 
 class ProgramLevelDecl(Node):
     def __init__(self, decl):
@@ -36,141 +28,6 @@ class ProgramLevelDecl(Node):
     def print_visitor(self, visitor):
         decl = visitor.visit(self.decl)
         return f'({self.__class__.__name__} {decl})'
-
-class TypeDeclaration(Node):
-    def __init__(self, identifier, body):
-        super().__init__()
-        self.identifier = identifier
-        self.body = body
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        body = visitor.visit(self.body)
-        return f'({self.__class__.__name__} {identifier} {body})'
-        
-class FunctionDeclaration(Node):
-    def __init__(self, identifier, parameters, body):
-        super().__init__()
-        self.identifier = identifier
-        self.parameters = parameters
-        self.body = body
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        parameters = visitor.visit(self.parameters)
-        body = visitor.visit(self.body)
-        return f'({self.__class__.__name__} {identifier} {parameters} {body})'
-        
-        
-class Parameter(Node):
-    def __init__(self, identifier, type_annotation):
-        super().__init__()
-        self.identifier = identifier
-        self.type_annotation = type_annotation
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        type_annotation = visitor.visit(self.type_annotation)
-        return f'({self.__class__.__name__} {identifier} {type_annotation})'
-
-class VarDeclaration(Node):
-    def __init__(self, var_init_list, body):
-        super().__init__()
-        self.var_init_list = var_init_list
-        self.body = body
-
-    def print_visitor(self, visitor):
-        var_init_list = visitor.visit(self.var_init_list)
-        body = visitor.visit(self.body)
-        return f'({self.__class__.__name__} {var_init_list} {body})'
-        
-class VarInit(Node):
-    def __init__(self, type, identifier, expression, type_downcast=None):
-        super().__init__()
-        self.type = type
-        self.identifier = identifier
-        self.expression = expression
-        self.type_downcast = type_downcast
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        expression = visitor.visit(self.expression)
-        type_downcast = visitor.visit(self.type_downcast)
-        return f'({self.__class__.__name__} {identifier} {self.type} {expression} {type_downcast})'
-        
-class Conditional(Node):
-    def __init__(self, condition, true_branch, false_branch=None):
-        super().__init__()
-        self.condition = condition
-        self.true_branch = true_branch
-        self.false_branch = false_branch
-
-    def print_visitor(self, visitor):
-        condition = visitor.visit(self.condition)
-        true_branch = visitor.visit(self.true_branch)
-        false_branch = visitor.visit(self.false_branch)
-        return f'({self.__class__.__name__} {condition} {true_branch} {false_branch})'
-
-class Loop(Node):
-    def __init__(self, condition, body):
-        super().__init__()
-        self.condition = condition
-        self.body = body
-
-    def print_visitor(self, visitor):
-        condition = visitor.visit(self.condition)
-        body = visitor.visit(self.body)
-        return f'({self.__class__.__name__} {condition} {body})'
-        
-
-class WhileLoop(Loop):
-    pass
-    
-class ForLoop(Loop):
-    def __init__(self, init, condition, increment, body):
-        super().__init__(condition, body)
-        self.init = init
-        self.increment = increment
-            
-class FunctionCall(Node):
-    def __init__(self, identifier, arguments):
-        super().__init__()
-        self.identifier = identifier
-        self.arguments = arguments
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        arguments = visitor.visit(self.arguments)
-        return f'({self.__class__.__name__} {identifier} {arguments})'
-
-class Scope(Node):
-    def __init__(self, statements):
-        super().__init__()
-        self.statements = statements
-
-    def print_visitor(self, visitor):
-        statements = visitor.visit(self.statements)
-        return f'({self.__class__.__name__} {statements})'
-            
-class Assignment(Node):
-    def __init__(self, identifier, expression):
-        super().__init__()
-        self.identifier = identifier
-        self.expression = expression
-        
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        expression = visitor.visit(self.expression)
-        return f'({self.__class__.__name__} {identifier} {expression})'
-        
-class Argument(Node):
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
-
-    def print_visitor(self, visitor):
-        value = visitor.visit(self.value)
-        return f'({self.__class__.__name__} {value})'
         
 class Instruction(Node):
     def print_visitor(self, visitor):
@@ -180,7 +37,7 @@ class Expression(Instruction):
     def print_visitor(self, visitor):
         return f'({self.__class__.__name__} {self})' 
 
-class Aritmetic_operation(Expression):
+class Aritmetic_operation(Expression,BinaryNode):#ver
     def __init__(self, term, aritmetic_operation):
         super().__init__()
         self.term = term
@@ -214,7 +71,7 @@ class Sub(Aritmetic_operation):
         arith_op = visitor.visit(self.aritmetic_operation)
         return f'({self.__class__.__name__} {term} {arith_op})'
 
-class Term(Node):
+class Term(Node,BinaryNode):
     def __init__(self, factor, term):
         super().__init__()
         self.factor = factor
@@ -328,7 +185,79 @@ class Variable(Node):
         else: 
             self.instruction = type(instruction)
 
+class Conditional_Expression(Node):
+    pass
+class Not(Conditional_Expression):
+    def __init__(self,condition):
+        super().__init__()
+        self.condition = condition
+    def print_visitor(self, visitor):
+        condition = visitor.visit(self.condition) 
+        return f'({self.__class__.__name__} {condition})'
 
+class Or(Conditional_Expression):
+    def __init__(self,condition,conditional_expression):
+        super().__init__()
+        self.condition = condition
+        self.conditional_expression = conditional_expression
+    def print_visitor(self, visitor):
+        condition = visitor.visit(self.condition) 
+        conditional_expression = visitor.visit(self.conditional_expression)
+        return f'({self.__class__.__name__} {condition} {conditional_expression})'
+class And(Conditional_Expression):
+    def __init__(self,condition,conditional_expression):
+        super().__init__()
+        self.condition = condition
+        self.conditional_expression = conditional_expression
+    def print_visitor(self, visitor):
+        condition = visitor.visit(self.condition) 
+        conditional_expression = visitor.visit(self.conditional_expression)
+        return f'({self.__class__.__name__} {condition} {conditional_expression})'
+
+class Comparation(Node):
+    def __init__(self,expr1,expr2):
+        self.expr1 = expr1
+        self.expr2 = expr2
+
+    def print_visitor(self, visitor):
+        argument1 = visitor.visit(self.expr1)
+        argument2 = visitor.visit(self.expr2)
+        return f'({expr1} {expr2})'
+
+class Not_Equal(Comparation):
+    def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})'
+ 
+class Equal(Comparation):
+     def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})'
+class Less_Equal(Comparation):
+     def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})' 
+
+class Greater_Equal(Comparation):
+     def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})'
+
+class Less_Than(Comparation):
+     def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})'
+
+class Greater_Than(Comparation):
+     def print_visitor(self, visitor):
+        expr1 = visitor.visit(self.expr1)
+        expr2 = visitor.visit(self.expr2) 
+        return f'({self.__class__.__name__} {expr1} {expr2})' 
 
 class HulkPrintVisitor(object):
     def __init__(self):

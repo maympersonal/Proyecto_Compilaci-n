@@ -3,7 +3,9 @@ from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
 from cmp.ast_h import HulkPrintVisitor
 import os
-
+# from cmp.sentactic_analyzer import TypeCollector
+# from cmp.sentactic_analyzer import TypeBuilder
+# from cmp.sentactic_analyzer import TypeChecker
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -41,14 +43,20 @@ def hacer_lex(archivo, stop = False):
         print()
         result = parser.parse(lexer.tokenize(contenido))
         v = viever.visit(result)
-        print()
-        print("AST = " + v)
-        print()
+        # print()
+        # print("AST = " + v)
+        # print()
         #print_visitor.visit(result)
         #print(result)
         print(archivo)
         if stop:
             input()
+
+        # collector = TypeCollector(errors)
+        # collector.visit(ast)
+
+        # builder = TypeBuilder(collector.context, errors)
+        # builder.visit(ast)
             
 def todos():
     # Obtener la ruta de la carpeta actual
