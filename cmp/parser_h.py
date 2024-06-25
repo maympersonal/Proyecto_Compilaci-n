@@ -25,12 +25,12 @@ class HulkParser(Parser):
 
     # Lista de declaraciones del programa
     @_('inst_list',
-       'program_level_decl program_decl_list', 
+       'program_level_decl program_decl_list',
        'empty')
     def program_decl_list(self, p):
         print("program_decl_list "+str([v for v in p]))
         return p[0]
-
+        
     # Declaraciones a nivel de programa
     @_('type_declaration', 
        'function_declaration', 
@@ -46,10 +46,6 @@ class HulkParser(Parser):
     def inst_list(self, p):
         print("inst_list "+str([v for v in p]))
         return p[0]
-        
-        
-
-    
 
     # Instrucción
     @_('scope_list',
@@ -139,7 +135,7 @@ class HulkParser(Parser):
        'atom ESPACEDCONCAT expression')
     def expression(self, p):
         print("expression "+str([v for v in p]))
-        pass
+        return Concat(p[1], p[0], p[2])
 
     @_('var_asign')
     def expression(self, p):
@@ -183,16 +179,15 @@ class HulkParser(Parser):
 
     # Factor
     @_('factor POWER base_exponent', 
-       'factor ASTERPOWER base_exponent', 
-       'base_exponent')
+       'factor ASTERPOWER base_exponent')
     def factor(self, p):
         print("factor "+str([v for v in p]))
-        if len(p)==1:
-            return p[0]
-        else: 
-            return Power(p[0],p[2])
-
-    
+        return Power(p[0],p[2])
+        
+    @_('base_exponent')
+    def factor(self, p):
+        print("factor1 "+str([v for v in p]))
+        return p[0]
 
     # Base del exponente
     @_('identifier')
@@ -203,7 +198,7 @@ class HulkParser(Parser):
     @_('LPAREN aritmetic_operation RPAREN')
     def base_exponent(self, p):
         print("base_exponent "+str([v for v in p]))
-        return p[0]
+        return p[1]
 
     # Átomo
     @_('function_call', 
@@ -222,10 +217,12 @@ class HulkParser(Parser):
     def atom(self, p):
         print("string "+str([v for v in p]))
         return String(p[0])
+        
     @_('NUMBER')
     def atom(self, p):
         print("Number"+str([v for v in p]))
         return Number(p[0])
+
     # Asignación de variable
     @_('var_use DEST_ASSIGN expression', 
        'var_use ASSIGN expression')
@@ -354,7 +351,7 @@ class HulkParser(Parser):
        'FALSE')
     def boolean_value(self, p):
         print("boolean_value "+str([v for v in p]))
-        pass
+        return Boolean(p[0])
 
     # Declaración de tipo
     @_('TYPE IDENTIFIER parameters decl_body',
@@ -544,7 +541,7 @@ class HulkParser(Parser):
     @_('PRINT LPAREN argument RPAREN')
     def build_in_print(self, p):
         print("build_in_print "+str([v for v in p]))
-        pass
+        return UnaryBuildInFunction(p[0], p[2])
 
     # Funciones integradas
     @_('build_in_range', 
@@ -559,12 +556,12 @@ class HulkParser(Parser):
        'EXP LPAREN argument RPAREN')
     def build_in_functions(self, p):
         print("build_in_functions "+str([v for v in p]))
-        pass
+        return UnaryBuildInFunction(p[0], p[2])
 
     @_('LOG LPAREN argument COMMA argument RPAREN')
     def build_in_functions(self, p):
         print("build_in_functions "+str([v for v in p]))
-        pass
+        return BinaryBuildInFunction(p[0], p[2], p[4])
 
     @_('RAND LPAREN RPAREN')
     def build_in_functions(self, p):
@@ -576,7 +573,7 @@ class HulkParser(Parser):
        'E_CONST')
     def build_in_consts(self, p):
         print("build_in_consts "+str([v for v in p]))
-        pass
+        return BuildInConst(p[0])
 
     # Regla vacía
     @_('')
