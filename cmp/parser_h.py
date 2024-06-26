@@ -44,9 +44,11 @@ class HulkParser(Parser):
         'inst SEMICOLON', 
         'inst SEMICOLON inst_list')
     def inst_list(self, p):
-        print("inst_list "+str([v for v in p]))
-        return p[0]
-
+        print("inst_list * "+str([v for v in p]))
+        if len(p) == 3 and not isinstance(p[2], list): 
+            p[2] = [p[2]]
+        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else p[0]
+        
     # Instrucción
     @_('scope_list',
        'flux_control', 
@@ -116,14 +118,17 @@ class HulkParser(Parser):
         'scope scope_list')
     def scope_list(self, p):
         print("scope_list "+str([v for v in p]))
-        return p[0]
+        if len(p) == 2 and not isinstance(p[1], list): 
+            p[1] = [p[1]]
+        return [y for x in [[p[0]], p[1]] for y in x] if len(p) == 2 else p[0]
         
     # Alcance
     @_('LBRACE inst_list RBRACE', 
        'LBRACE RBRACE')
     def scope(self, p):
         print("scope "+str([v for v in p]))
-        pass
+        if len(p)==3:
+            return Scope(p[1])
 
     # Expresión
     @_('aritmetic_operation')
@@ -231,35 +236,59 @@ class HulkParser(Parser):
         pass
 
     # Declaración de función
-    @_('func_decl_id parameters function_full_declaration',
-       'func_decl_id LPAREN RPAREN function_full_declaration',
-       'func_decl_id parameters function_full_declaration SEMICOLON',
-       'func_decl_id LPAREN RPAREN function_full_declaration SEMICOLON',
-       'func_decl_id parameters function_inline_declaration',
-       'func_decl_id LPAREN RPAREN function_inline_declaration')
+    @_('func_decl_id parameters function_full_declaration')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        pass
-
+        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration, p.parameters)
+        
+    @_('func_decl_id LPAREN RPAREN function_full_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration)
+        
+    @_('func_decl_id parameters function_full_declaration SEMICOLON')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration, p.parameters)
+        
+    @_('func_decl_id LPAREN RPAREN function_full_declaration SEMICOLON')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration)
+        
+    @_('func_decl_id parameters function_inline_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.func_decl_id, p.function_inline_declaration, p.parameters)
+        
+    @_('func_decl_id LPAREN RPAREN function_inline_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.func_decl_id, p.function_inline_declaration)
+    
     # Identificador de declaración de función
     @_('FUNCTION IDENTIFIER')
     def func_decl_id(self, p):
         print("func_decl_id "+str([v for v in p]))
-        pass
+        return p.IDENTIFIER
 
     # Declaración completa de función
     @_('scope')
     def function_full_declaration(self, p):
         print("function_full_declaration "+str([v for v in p]))
-        return p[0]
+        return p.scope
 
     # Declaración inline de función
-    @_('RETURN inst SEMICOLON', 
-       'type_anotation RETURN inst SEMICOLON')
+    @_('RETURN inst SEMICOLON')
+    def function_inline_declaration(self, p):
+        print("function_inline_declaration "+str([v for v in p]))
+        return p.inst
+    
+    @_('type_anotation RETURN inst SEMICOLON')
     def function_inline_declaration(self, p):
         print("function_inline_declaration "+str([v for v in p]))
         pass
-
+        
     # Condicional
     @_('IF inline_conditional', 
        'IF full_conditional')
@@ -450,8 +479,10 @@ class HulkParser(Parser):
        'argument COMMA arguments_list')
     def arguments_list(self, p):
         print("arguments_list "+str([v for v in p]))
-        return p[0]
-
+        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else [p[0]]
+    
+    
+        
     # Argumento
     @_('expression', 
        'conditional')
@@ -460,13 +491,17 @@ class HulkParser(Parser):
         return p[0]
 
     # Uso de variable
-    @_('IDENTIFIER', 
-       'atom LBRACKET expression RBRACKET', 
+    @_('IDENTIFIER',
        'var_attr')
     def var_use(self, p):
         print("var_use "+str([v for v in p]))
+        return VarUse(p[0])
+    
+    @_('atom LBRACKET expression RBRACKET')
+    def var_use(self, p):
+        print("var_use "+str([v for v in p]))
         pass
-
+        
     # Atributo de variable
     @_('IDENTIFIER DOT IDENTIFIER', 
        'IDENTIFIER DOT var_attr')
