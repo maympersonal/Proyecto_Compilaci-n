@@ -15,7 +15,9 @@ class HulkParser(Parser):
                   ('left', PLUS, MINUS, CONCAT, ESPACEDCONCAT),
                   ('left', MULTIPLY, DIVIDE, MODULE),
                   ('right', POWER, ASTERPOWER), 
-                  ('right', NOT))
+                  ('right', NOT),
+                  ('right', UNARY),
+                 )
 
     # Regla inicial
     @_('program_decl_list')
@@ -24,12 +26,20 @@ class HulkParser(Parser):
         return Program(p.program_decl_list)
 
     # Lista de declaraciones del programa
-    @_('inst_list',
-       'program_level_decl program_decl_list',
-       'empty')
+    @_('inst_list')
     def program_decl_list(self, p):
         print("program_decl_list "+str([v for v in p]))
         return p[0]
+        
+    @_('empty')
+    def program_decl_list(self, p):
+        print("program_decl_list "+str([v for v in p]))
+        return []
+        
+    @_('program_level_decl program_decl_list')
+    def program_decl_list(self, p):
+       print("program_decl_list "+str([v for v in p]))
+       return [y for x in [[p[0]], p[1]] for y in x] if len(p) == 2 else [p[0]]
         
     # Declaraciones a nivel de programa
     @_('type_declaration', 
@@ -45,9 +55,7 @@ class HulkParser(Parser):
         'inst SEMICOLON inst_list')
     def inst_list(self, p):
         print("inst_list * "+str([v for v in p]))
-        if len(p) == 3 and not isinstance(p[2], list): 
-            p[2] = [p[2]]
-        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else p[0]
+        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else [p[0]]
         
     # Instrucción
     @_('scope_list',
@@ -65,7 +73,7 @@ class HulkParser(Parser):
     @_('LET var_init_list IN var_decl_expr')
     def var_dec(self, p):
         print("var_dec "+str([v for v in p]))
-        pass
+        return VarDeclaration(p.var_init_list, p.var_decl_expr)
 
     # Expresión de declaración de variable
     @_('scope', 
@@ -84,14 +92,17 @@ class HulkParser(Parser):
        'var_init COMMA var_init_list')
     def var_init_list(self, p):
         print("var_init_list "+str([v for v in p]))
-        return p[0]
+        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else [p[0]]
 
     # Inicialización de variable
     @_('identifier ASSIGN inst', 
        'identifier ASSIGN inst type_downcast')
     def var_init(self, p):
         print("var_init "+str([v for v in p]))
-        pass
+        if len(p) == 3:
+            return VarInit(p.identifier, p.inst)
+        else:
+            return VarInit(p.identifier, p.inst, p.type_downcast)
 
     # Identificador o parámetro completamente tipado
     @_('atom', 
@@ -104,7 +115,7 @@ class HulkParser(Parser):
     @_('IDENTIFIER type_anotation')
     def fully_typed_param(self, p):
         print("fully_typed_param "+str([v for v in p]))
-        pass
+        return VarUse(p.IDENTIFIER, p.type_anotation)
 
     # Anotación de tipo
     @_('COLON IDENTIFIER', 
@@ -118,9 +129,7 @@ class HulkParser(Parser):
         'scope scope_list')
     def scope_list(self, p):
         print("scope_list "+str([v for v in p]))
-        if len(p) == 2 and not isinstance(p[1], list): 
-            p[1] = [p[1]]
-        return [y for x in [[p[0]], p[1]] for y in x] if len(p) == 2 else p[0]
+        return [y for x in [[p[0]], p[1]] for y in x] if len(p) == 2 else [p[0]]
         
     # Alcance
     @_('LBRACE inst_list RBRACE', 
@@ -193,7 +202,12 @@ class HulkParser(Parser):
     def factor(self, p):
         print("factor1 "+str([v for v in p]))
         return p[0]
-
+        
+    @_('MINUS factor %prec UNARY',
+       'PLUS factor %prec UNARY')
+    def factor(self, p):
+        pass
+        
     # Base del exponente
     @_('identifier')
     def base_exponent(self, p):
@@ -233,44 +247,70 @@ class HulkParser(Parser):
        'var_use ASSIGN expression')
     def var_asign(self, p):
         print("var_asign "+str([v for v in p]))
-        pass
+        return VarInit(p.var_use, p.expression)
 
     # Declaración de función
-    @_('func_decl_id parameters function_full_declaration')
+    @_('FUNCTION IDENTIFIER parameters function_full_declaration')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration, p.parameters)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, parameters = p.parameters)
         
-    @_('func_decl_id LPAREN RPAREN function_full_declaration')
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN function_full_declaration')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration)
         
-    @_('func_decl_id parameters function_full_declaration SEMICOLON')
+    @_('FUNCTION IDENTIFIER parameters function_full_declaration SEMICOLON')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration, p.parameters)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, parameters = p.parameters)
         
-    @_('func_decl_id LPAREN RPAREN function_full_declaration SEMICOLON')
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN function_full_declaration SEMICOLON')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_full_declaration)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration)
         
-    @_('func_decl_id parameters function_inline_declaration')
+    @_('FUNCTION IDENTIFIER parameters function_inline_declaration')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_inline_declaration, p.parameters)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration, parameters = p.parameters)
         
-    @_('func_decl_id LPAREN RPAREN function_inline_declaration')
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN function_inline_declaration')
     def function_declaration(self, p):
         print("function_declaration "+str([v for v in p]))
-        return FunctionDeclaration(p.func_decl_id, p.function_inline_declaration)
+        return FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration)
     
-    # Identificador de declaración de función
-    @_('FUNCTION IDENTIFIER')
-    def func_decl_id(self, p):
-        print("func_decl_id "+str([v for v in p]))
-        return p.IDENTIFIER
+
+
+    @_('FUNCTION IDENTIFIER parameters type_anotation function_full_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
+        
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation)
+        
+    @_('FUNCTION IDENTIFIER parameters type_anotation function_full_declaration SEMICOLON')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
+        
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration SEMICOLON')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation)
+        
+    @_('FUNCTION IDENTIFIER parameters type_anotation function_inline_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
+        
+    @_('FUNCTION IDENTIFIER LPAREN RPAREN type_anotation function_inline_declaration')
+    def function_declaration(self, p):
+        print("function_declaration "+str([v for v in p]))
+        return FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration, type_anotation = p.type_anotation )
 
     # Declaración completa de función
     @_('scope')
@@ -284,40 +324,36 @@ class HulkParser(Parser):
         print("function_inline_declaration "+str([v for v in p]))
         return p.inst
     
-    @_('type_anotation RETURN inst SEMICOLON')
-    def function_inline_declaration(self, p):
-        print("function_inline_declaration "+str([v for v in p]))
-        pass
         
     # Condicional
     @_('IF inline_conditional', 
        'IF full_conditional')
     def conditional(self, p):
         print("conditional "+str([v for v in p]))
-        pass
+        return p[1]
 
     @_('LPAREN conditional_expression RPAREN expression else_elif_statement')
     def inline_conditional(self, p):
         print("inline_conditional "+str([v for v in p]))
-        pass
+        return InlineConditional(p.conditional_expression, p.expression, p.else_elif_statement)
 
     @_('LPAREN conditional_expression RPAREN scope_list else_elif_statement')
     def full_conditional(self, p):
         print("full_conditional "+str([v for v in p]))
-        pass
+        return FullConditional(p.conditional_expression, p.scope_list, p.else_elif_statement)
 
     # Sentencia else o elif
     @_('ELIF inline_conditional', 
        'ELIF full_conditional')
     def else_elif_statement(self, p):
         print("else_elif_statement "+str([v for v in p]))
-        pass
+        return p[1]
 
     @_('ELSE inline_else', 
        'ELSE full_else')
     def else_elif_statement(self, p):
         print("else_elif_statement "+str([v for v in p]))
-        pass
+        return p[1]
 
     # Else inline
     @_('expression')
@@ -338,14 +374,14 @@ class HulkParser(Parser):
        'WHILE LPAREN expression RPAREN expression')
     def while_loop(self, p):
         print("while_loop "+str([v for v in p]))
-        pass
-
+        return WhileLoop(p[2], p[4])
+    
     # Bucle for
     @_('FOR LPAREN identifier IN expression RPAREN scope',
        'FOR LPAREN identifier IN expression RPAREN expression')
     def for_loop(self, p):
         print("for_loop "+str([v for v in p]))
-        pass
+        return ForLoop(p[2], p[4] , p[6])
 
     # Expresión condicional
     @_('condition AND conditional_expression', 
@@ -354,15 +390,38 @@ class HulkParser(Parser):
        'condition')
     def conditional_expression(self, p):
         print("conditional_expression "+str([v for v in p]))
+        if len(p)==1:
+            return p[0]
+        elif p[1]=='and':
+            return And(p[0],p[2])
+        elif p[1]=='or':
+            return Or(p[0],p[2])
+        elif p[0]=='not':
+            return Not(p[1])
         pass
 
     # Condición
-    @_('comparation', 
-       'IDENTIFIER type_conforming', 
-       'LPAREN conditional_expression RPAREN')
+    @_('comparation')
     def condition(self, p):
         print("condition "+str([v for v in p]))
-        pass
+        return p[0]
+  
+
+    '''# Conformidad de tipo
+    @_('IS identifier')
+    def type_conforming(self, p):
+        print("type_conforming "+str([v for v in p]))
+        return TypeConforming(p[1])'''
+
+    @_('IDENTIFIER IS identifier')
+    def condition(self, p):
+        print("condition "+str([v for v in p]))
+        return Is(p[0],p[2])
+
+    @_('LPAREN conditional_expression RPAREN')
+    def condition(self, p):
+        print("condition "+str([v for v in p]))
+        return p[1]
 
     # Comparación
     @_('expression GREATER_THAN expression', 
@@ -373,7 +432,18 @@ class HulkParser(Parser):
        'expression NOT_EQUAL expression')
     def comparation(self, p):
         print("comparation "+str([v for v in p]))
-        pass
+        if p[1]=='>':
+            return GreaterThan(p[0],p[2])
+        elif p[1]=='<':
+            return LessThan(p[0],p[2])
+        elif p[1]=='>=':
+            return GreaterEqual(p[0],p[2])  
+        elif p[1]=='<=':
+            return LessEqual(p[0],p[2])
+        elif p[1]=='==':
+            return Equal(p[0],p[2])
+        elif p[1]=='!=':
+            return NotEqual(p[0],p[2])
 
     # Valor booleano
     @_('TRUE', 
@@ -383,16 +453,32 @@ class HulkParser(Parser):
         return Boolean(p[0])
 
     # Declaración de tipo
-    @_('TYPE IDENTIFIER parameters decl_body',
-       'TYPE IDENTIFIER parameters inherits_type decl_body',
-       'TYPE IDENTIFIER parameters decl_body SEMICOLON',
-       'TYPE IDENTIFIER parameters inherits_type decl_body SEMICOLON',
-       'TYPE IDENTIFIER decl_body', 'TYPE IDENTIFIER inherits_type decl_body',
-       'TYPE IDENTIFIER decl_body SEMICOLON',
+    @_( 'TYPE IDENTIFIER parameters decl_body',
+        'TYPE IDENTIFIER parameters decl_body SEMICOLON')
+    def type_declaration(self, p):
+        print("type_declaration "+str([v for v in p]))
+        return TypeDeclaration(p.IDENTIFIER, parameters = p.parameters,decl_body = p.decl_body)
+        
+    @_( 'TYPE IDENTIFIER parameters inherits_type decl_body',
+        'TYPE IDENTIFIER parameters inherits_type decl_body SEMICOLON')
+    def type_declaration(self, p):
+        print("type_declaration "+str([v for v in p]))
+        return TypeDeclaration(p.IDENTIFIER, parameters = p.parameters, inherits_type = p.inherits_type, decl_body = p.decl_body)
+            
+    @_('TYPE IDENTIFIER decl_body',
+       'TYPE IDENTIFIER decl_body SEMICOLON')
+    def type_declaration(self, p):
+        print("type_declaration "+str([v for v in p]))
+        return TypeDeclaration(p.IDENTIFIER, decl_body = p.decl_body)
+        
+    @_('TYPE IDENTIFIER inherits_type decl_body',
        'TYPE IDENTIFIER inherits_type decl_body SEMICOLON')
     def type_declaration(self, p):
         print("type_declaration "+str([v for v in p]))
-        pass
+        return TypeDeclaration(p.IDENTIFIER, inherits_type = p.inherits_type, decl_body = p.decl_body)
+           
+        
+    
 
     # Parámetros
     @_('LPAREN arguments_list RPAREN')
@@ -405,21 +491,28 @@ class HulkParser(Parser):
        'INHERITS IDENTIFIER parameters')
     def inherits_type(self, p):
         print("inherits_type "+str([v for v in p]))
-        pass
+        if len(p) == 3:
+            return InheritsType(p.IDENTIFIER, p.parameters)
+        else:
+            return InheritsType(p.IDENTIFIER)
 
     # Cuerpo de la declaración
     @_('LBRACE RBRACE', 
        'LBRACE decl_list RBRACE')
     def decl_body(self, p):
         print("decl_body "+str([v for v in p]))
-        pass
+        if len(p)==3:
+            return DeclarationScope(p[1])
+        else:
+            return DeclarationScope([])
 
     # Lista de declaraciones
-    @_('decl SEMICOLON', 'decl SEMICOLON decl_list')
+    @_('decl SEMICOLON', 
+       'decl SEMICOLON decl_list')
     def decl_list(self, p):
         print("decl_list "+str([v for v in p]))
-        pass
-
+        return [y for x in [[p[0]], p[2]] for y in x] if len(p) == 3 else [p[0]]
+        
     # Declaración
     @_('atribute_declaration', 
        'method_declaration')
@@ -432,47 +525,86 @@ class HulkParser(Parser):
        'identifier ASSIGN expression type_downcast')
     def atribute_declaration(self, p):
         print("atribute_declaration "+str([v for v in p]))
-        pass
+        if len(p) == 3:
+            return VarInit(p.identifier, p.expression)
+        else:
+            return VarInit(p.identifier, p.expression, p.type_downcast)
 
-    # Declaración de método
-    @_( 'IDENTIFIER parameters RETURN expression',
-        'IDENTIFIER parameters function_full_declaration',
-        'IDENTIFIER LPAREN RPAREN RETURN expression',
-        'IDENTIFIER LPAREN RPAREN function_full_declaration',
-        'IDENTIFIER parameters type_anotation RETURN expression',
-        'IDENTIFIER parameters type_anotation function_full_declaration',
-        'IDENTIFIER LPAREN RPAREN type_anotation RETURN expression',
-        'IDENTIFIER LPAREN RPAREN type_anotation RETURN conditional_expression',
-        'IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration')
+    
+    @_('IDENTIFIER parameters RETURN expression')
     def method_declaration(self, p):
         print("method_declaration "+str([v for v in p]))
-        pass
-
+        return MethodDeclaration(p.IDENTIFIER, p.expression, parameters = p.parameters)
+        
+    @_('IDENTIFIER parameters function_full_declaration')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, parameters = p.parameters)
+        
+    @_('IDENTIFIER LPAREN RPAREN RETURN expression')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.expression)
+        
+    @_('IDENTIFIER LPAREN RPAREN function_full_declaration')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration)
+        
+    @_('IDENTIFIER parameters type_anotation RETURN expression')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation, parameters = p.parameters)
+        
+    @_('IDENTIFIER parameters type_anotation function_full_declaration')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
+        
+    @_('IDENTIFIER LPAREN RPAREN type_anotation RETURN expression')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation)
+        
+    @_('IDENTIFIER LPAREN RPAREN type_anotation RETURN conditional_expression')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.conditional_expression, type_anotation = p.type_anotation)
+        
+    @_('IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration')
+    def method_declaration(self, p):
+        print("method_declaration "+str([v for v in p]))
+        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation)
+    
+    
     # Llamada a función
     @_('IDENTIFIER LPAREN arguments_list RPAREN', 
        'IDENTIFIER LPAREN RPAREN')
     def function_call(self, p):
         print("function_call "+str([v for v in p]))
-        pass
+        if len(p) == 4:
+            return FunctionCall(p[0], p[2])
+        else:
+            return FunctionCall(p[0])
 
+        
     # Instanciación de tipo
     @_('NEW IDENTIFIER LPAREN arguments_list RPAREN', 
        'NEW IDENTIFIER LPAREN RPAREN')
     def type_instanciation(self, p):
         print("type_instanciation "+str([v for v in p]))
-        pass
+        if len(p) == 5:
+            return TypeInstanciation(p.IDENTIFIER, p.arguments_list)
+        else:
+            return TypeInstanciation(p.IDENTIFIER)
 
-    # Conformidad de tipo
-    @_('IS identifier')
-    def type_conforming(self, p):
-        print("type_conforming "+str([v for v in p]))
-        pass
+    
 
     # Downcast de tipo
     @_('AS identifier')
     def type_downcast(self, p):
         print("type_downcast "+str([v for v in p]))
-        pass
+        return TypeDowncast(p[1])
 
     # Lista de argumentos
     @_('argument', 
@@ -507,13 +639,14 @@ class HulkParser(Parser):
        'IDENTIFIER DOT var_attr')
     def var_attr(self, p):
         print("var_attr "+str([v for v in p]))
-        pass
+        return VarAttr(p[0], p[2])
+    
 
     # Método de variable
     @_('IDENTIFIER DOT function_call')
     def var_method(self, p):
         print("var_method "+str([v for v in p]))
-        pass
+        return VarMethod(p.IDENTIFIER, p.function_call)
 
     # Control de flujo
     @_('while_loop', 
@@ -570,7 +703,7 @@ class HulkParser(Parser):
     @_('RANGE LPAREN argument COMMA argument RPAREN')
     def build_in_range(self, p):
         print("build_in_range "+str([v for v in p]))
-        pass
+        return BinaryBuildInFunction(p[0], p[2], p[4])
 
     # Imprimir
     @_('PRINT LPAREN argument RPAREN')
