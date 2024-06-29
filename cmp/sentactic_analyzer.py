@@ -49,10 +49,45 @@ class TypeBuilder:
             self.visit(declaration)
         
     @visitor.when(TypeDeclaration)
+    def visit(self,node):#ver la parte de herencia
+        try:
+            newType = self.context.get_type(node.identifier)#ver
+
+            if node.inherits_type != None:
+                father = self.context.get_type(node.inherits_type.identifier)#ver
+                newType.set_parent(father)
+
+            for decl in node.body:
+                declaration = self.visit(decl)
+                if declaration is Attribute:
+                    newType.define_attribute(declaration)
+                else:
+                    newType.define_method(declaration)
+
+        except SemanticError as e:
+            self.errors.append(e)
+
+    @visitor.when(VarInit)
     def visit(self,node):
-        # try:
-        #     self.context.get_type(node.identifier)
-        pass
+        try:
+            self.context.get_type(node.type_downcast)
+            return Attribute(node.name,node.type_downcast)
+        except SemanticError as e:
+            self.errors.append(e)
+            
+    @visitor.when(MethodDeclaration)
+    def visit(self,node):#ver
+        try:
+            self.context.get_type(node.type_anotation)
+            param_names,param_types = zip(*node.parameters)
+            for param_type in param_types:
+                self.context.get_type(param_type)
+            return Method(node.name, param_names,param_types,node.type_anotation)
+        except SemanticError as e:
+            self.errors.append(e)
+
+        
+        
 
 class TypeChecker:
     def __init__(self, context, errors=[]):

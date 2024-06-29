@@ -19,7 +19,7 @@ class Attribute:
         return str(self)
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name:str, param_names:list, params_types, return_type):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
@@ -57,15 +57,14 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, name:str, typex):
+    def define_attribute(self, attr):#comprobar
         try:
-            self.get_attribute(name)
+            self.get_attribute(attr.name)
         except SemanticError:
-            attribute = Attribute(name, typex)
-            self.attributes.append(attribute)
-            return attribute
+            self.attributes.append(attr)
+            return attr
         else:
-            raise SemanticError(f'Attribute "{name}" is already defined in {self.name}.')
+            raise SemanticError(f'Attribute "{attr.name}" is already defined in {self.name}.')
 
     def get_method(self, name:str):
         try:
@@ -77,13 +76,11 @@ class Type:
                 return self.parent.get_method(name)
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
-
-    def define_method(self, name:str, param_names:list, param_types:list, return_type):
-        if name in (method.name for method in self.methods):
-            raise SemanticError(f'Method "{name}" already defined in {self.name}')
-
-        method = Method(name, param_names, param_types, return_type)
-        self.methods.append(method)
+   
+    def define_method(self,newMethod):#comprobar
+        if newMethod.name in (method.name for method in self.methods):
+            raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
+        self.methods.append(newMethod)
         return method
 
     def all_attributes(self, clean=True):

@@ -1,5 +1,6 @@
 import cmp.visitor as visitor
 
+
 import inspect
 
 
@@ -85,7 +86,7 @@ class FunctionDeclaration(Node):
         #type_anotation = visitor.visit(self.type_anotation)
         parameters = " , ".join([visitor.visit(pr) for pr in self.parameters])
         body = visitor.visit(self.body)
-        return f'{self.__class__.__name__} ({self.identifier} {self.type_anotation} Parameters({parameters}) Body({body}))'
+        return f'{self.__class__.__name__} ({self.identifier} {self.type_anotation} {parameters} {body})'
 
 
 
@@ -107,7 +108,6 @@ class VarDeclaration(Node):
     def __init__(self, var_init_list, body):
         super().__init__()
         self.var_init_list = var_init_list
-        print("******" + str(var_init_list))
         self.body = body
 
     def print_visitor(self, visitor):
@@ -124,7 +124,8 @@ class TypeDowncast(Node):
         self.identifier = identifier
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.identifier})'
+        identifier = visitor.visit(self.identifier) if isinstance(self.identifier, VarUse) else self.identifier
+        return f'{self.__class__.__name__} ({identifier})'
 
 class TypeConforming(Node):
 
@@ -147,7 +148,7 @@ class VarInit(Node):
         identifier = visitor.visit(self.identifier)
         expression = visitor.visit(self.expression)
         type_downcast = visitor.visit(self.type_downcast)
-        return f'{self.__class__.__name__} ({identifier}  {expression} {type_downcast})'
+        return f'{self.__class__.__name__} ({identifier} {expression} {type_downcast})'
 
 
 class VarUse(Node):
@@ -161,6 +162,17 @@ class VarUse(Node):
         identifier = self.identifier if isinstance(self.identifier, str) else visitor.visit(self.identifier)
         return f'{self.__class__.__name__} ({identifier} {self.type})'
 
+class VectorVarUse(Node):
+
+    def __init__(self, identifier, index):
+        super().__init__()
+        self.index = index
+        self.identifier = identifier
+
+    def print_visitor(self, visitor):
+        index = visitor.visit(self.index)
+        identifier = self.identifier if isinstance(self.identifier, str) else visitor.visit(self.identifier)
+        return f'{self.__class__.__name__} ({identifier} {index})'
 
 class InlineConditional(Node):
 
@@ -426,7 +438,16 @@ class Boolean(Atom):
     def print_visitor(self, visitor):
         return f'{self.value}'
 
-
+class Unary(Node):
+    def __init__(self, sign, factor):
+        super().__init__()
+        self.sign = sign
+        self.factor = factor
+    
+    def print_visitor(self, visitor):
+        factor = visitor.visit(self.factor)
+        return f'{self.__class__.__name__} ({self.sign} {factor})'
+        
 class UnaryBuildInFunction(Atom):
 
     def __init__(self, func, argument):
@@ -452,6 +473,16 @@ class BinaryBuildInFunction(Atom):
         return f'{self.func} ({argument1} {argument2})'
 
 
+class NoParamBuildInFunction(Atom):
+
+    def __init__(self, func):
+        self.func = func
+
+    
+    def print_visitor(self, visitor):
+
+        return f'{self.func}'
+    
 class BuildInConst(Atom):
 
     def __init__(self, const):
@@ -489,7 +520,7 @@ class Not(Conditional_Expression):
 
     def print_visitor(self, visitor):
         condition = visitor.visit(self.condition)
-        return f'({self.__class__.__name__} {condition})'
+        return f'{self.__class__.__name__} ({condition})'
 
 
 class Or(Conditional_Expression):
@@ -502,7 +533,7 @@ class Or(Conditional_Expression):
     def print_visitor(self, visitor):
         condition = visitor.visit(self.condition)
         conditional_expression = visitor.visit(self.conditional_expression)
-        return f'({self.__class__.__name__} {condition} {conditional_expression})'
+        return f'{self.__class__.__name__} ({condition} {conditional_expression})'
 
 
 class And(Conditional_Expression):
@@ -515,7 +546,7 @@ class And(Conditional_Expression):
     def print_visitor(self, visitor):
         condition = visitor.visit(self.condition)
         conditional_expression = visitor.visit(self.conditional_expression)
-        return f'({self.__class__.__name__} {condition} {conditional_expression})'
+        return f'{self.__class__.__name__} ({condition} {conditional_expression})'
 
 class Is(Conditional_Expression):
 
@@ -526,7 +557,7 @@ class Is(Conditional_Expression):
 
     def print_visitor(self, visitor):
         conditional_expression = visitor.visit(self.conditional_expression)
-        return f'({self.__class__.__name__} {self.condition} {conditional_expression})'
+        return f'{self.__class__.__name__} ({self.condition} {conditional_expression})'
 
 class Comparation(Node):
 
@@ -538,7 +569,7 @@ class Comparation(Node):
     def print_visitor(self, visitor):
         expr1 = visitor.visit(self.expr1)
         expr2 = visitor.visit(self.expr2)
-        return f'({self.__class__.__name__} {expr1} {expr2})'
+        return f'{self.__class__.__name__} ({expr1} {expr2})'
 
 
 class NotEqual(Comparation):
@@ -615,7 +646,7 @@ class TypeDeclaration(Node):
         inherits_type = visitor.visit(self.inherits_type) if self.inherits_type != None else None
         decl_body = visitor.visit(self.decl_body)
 
-        return f'{self.__class__.__name__} {self.identifier}, Parameters({parameters}), Inherits({inherits_type}), {decl_body})'
+        return f'{self.__class__.__name__} ({self.identifier} {parameters} {inherits_type} {decl_body})'
 
 class InheritsType(Node):
     def __init__(self, identifier, parameters=None):
@@ -625,7 +656,7 @@ class InheritsType(Node):
         
     def print_visitor(self, visitor):
        parameters = [visitor.visit(pr) for pr in self.parameters] if self.parameters != None else None
-       return f'{self.__class__.__name__} {self.identifier}, {parameters})'
+       return f'{self.__class__.__name__} ({self.identifier}, {parameters})'
 
 class TypeInstanciation(Node):
     def __init__(self, identifier, arguments = []):
@@ -635,7 +666,7 @@ class TypeInstanciation(Node):
     
     def print_visitor(self, visitor):
        arguments = [visitor.visit(ar) for ar in self.arguments]
-       return f'{self.__class__.__name__} {self.identifier}, {arguments})'
+       return f'{self.__class__.__name__} ({self.identifier}, {arguments})'
 
 class DeclarationScope(Node):
     def __init__(self, statements):
@@ -655,12 +686,60 @@ class MethodDeclaration(Node):
         self.body = body
     
     def print_visitor(self, visitor):
-        #type_anotation = visitor.visit(self.type_anotation)
         parameters = " , ".join([visitor.visit(pr) for pr in self.parameters])
         body = visitor.visit(self.body)
-        return f'{self.__class__.__name__} ({self.identifier} {self.type_anotation} Parameters({parameters}) Body({body}))'
-    
+        return f'{self.__class__.__name__} ({self.identifier} {self.type_anotation} {parameters} {body})'
+
+class ProtocolDeclaration(Node):
+    def __init__(self, name, body, extends =None):
+        super().__init__()
+        self.name = name
+        self.extends = extends
+        self.body = body
+        
+    def print_visitor(self, visitor):
+        body = " , ".join([visitor.visit(pr) for pr in self.body])
+        return f'{self.__class__.__name__} ({self.name} {self.extends} {body})'
+
+class VirtualMethod(Node):
+    def __init__(self, method_name, type_annotation, parameters=None):
+        super().__init__()
+        self.method_name = method_name
+        self.parameters = parameters
+        self.type_annotation = type_annotation
+
+    def print_visitor(self, visitor):
+        parameters = None if self.parameters == None else " , ".join([visitor.visit(pr) for pr in self.parameters])
+        return f'{self.__class__.__name__} ({self.method_name} {self.type_annotation} {parameters})'
+
+class VectorRangeDeclaration(Node):
+
+    def __init__(self, range):
+        super().__init__()
+        self.range = range
+
+    def print_visitor(self, visitor):
+        range = " , ".join(
+            [visitor.visit(pr) for pr in self.range])
+        return f'{self.__class__.__name__} ({range})'
+
+class VectorExpressionDeclaration(Node):
+
+    def __init__(self, expression, identifier, rangeexpression):
+        super().__init__()
+        self.expression = expression
+        self.identifier = identifier
+        self.rangeexpression = rangeexpression
+
+    def print_visitor(self, visitor):
+        expression = visitor.visit(self.expression)
+        identifier = visitor.visit(self.identifier)
+        rangeexpression = visitor.visit(self.rangeexpression)
+        return f'{self.__class__.__name__} ({expression} {identifier} { rangeexpression})'
+
 class HulkPrintVisitor(object):
+    
+    tabs = -1
 
     def __init__(self):
         super().__init__()
@@ -671,4 +750,9 @@ class HulkPrintVisitor(object):
 
     @visitor.when(Node)
     def visit(self, node):
-        return node.print_visitor(self)
+        self.tabs = self.tabs + 1 
+        inter = '\\__ ' if self.tabs > 0 else ''
+        result = '\n' + '\t' * self.tabs + inter + node.print_visitor(self)
+        self.tabs = self.tabs - 1
+        return result
+
