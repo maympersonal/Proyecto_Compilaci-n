@@ -36,12 +36,13 @@ def hacer_lex(archivo, stop = False):
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
-        #for token in tokens:
-           #print(token)
+        # for token in tokens:
+        #    print(token)
 
         #input()
         print()
         result = parser.parse(lexer.tokenize(contenido))
+        
         v = viewer.visit(result)
         print()
         print("AST = " + v)
