@@ -1,6 +1,6 @@
-import cil_h as cil
-from semantic import VariableInfo
-from ast_h import *
+import cmp.cil_h as cil
+from cmp.semantic import VariableInfo
+from cmp.ast_h import *
 import math
 
 class BaseHulkToCil:
