@@ -19,11 +19,12 @@ class Attribute:
         return str(self)
 
 class Method:
-    def __init__(self, name:str, param_names:list, params_types, return_type):
+    def __init__(self, name:str, param_names:list, params_types, return_type, body):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
+        self.body = body
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -153,6 +154,7 @@ class IntType(Type):
 class Context:
     def __init__(self):
         self.types = {}
+        self.methods = {}#agregado
 
     def create_type(self, name:str):
         if name in self.types:
@@ -166,7 +168,22 @@ class Context:
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
 
-    def __str__(self):
+    def create_method(self, newMethod):#agregado
+        arguments = zip(newMethod.param_names, newMethod.params_types)
+        try:
+            self.methods[newMethod.name,arguments]
+            raise SemanticError(f'The Method ({name}) is already in context.')
+        except KeyError:
+            self.methods[newMethod.name,arguments] = newMethod
+            return newMethod
+
+    def get_method(self, name:str, arguments:list):
+        try:
+            return self.methods[name,arguments]
+        except KeyError:
+            raise SemanticError(f'Method "{name}" is not defined.')
+
+    def __str__(self):# modificar
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
 
     def __repr__(self):
