@@ -103,33 +103,27 @@ class TypeChecker:
     @visitor.when(Program)
     def visit(self, node, scope=None):
         scope = Scope()
-        for declaration in node.declarations:
+        for declaration in node.program_decl_list:
             self.visit(declaration, scope.create_child())
-        return self.errors
+        return scope
 
-    # @visitor.when(ClassDeclaration)
-    # def visit(self, node, scope):
-    #     pass
-        
-    # @visitor.when(AttrDeclarationNode)
-    # def visit(self, node, scope):
-    #     pass
+    @visitor.when(FunctionCall)#terminar luego
+    def visit(self,node,scope):
+        try:
+            method = self.context.get_method(node.identifier,node.arguments)
+            for i in range(0,len(node.arguments)):
+                if 
+        except SemanticError as e:
+            self.errors.append(e)
 
-    # @visitor.when(FuncDeclarationNode)
-    # def visit(self, node, scope):
-    #     pass
-    
-    # @visitor.when(VarDeclarationNode)
-    # def visit(self, node, scope):
-    #     pass
-            
-    # @visitor.when(AssignNode)
-    # def visit(self, node, scope):
-    #     pass
-    
-    # @visitor.when(CallNode)
-    # def visit(self, node, scope):
-    #     pass
+    @visitor.when(MethodDeclaration)
+    def visit(self,node,scope):
+        try:
+            param_names, params_types = zip[*node.parameters]
+            method = Method(node.identifier, param_names, params_types, node.type_anotation,node.body)
+            self.context.create_method(node)
+        except SemanticError as e:
+            self.errors.append(e)
     
     # # @visitor.when(BinaryNode)
     # # def visit(self, node, scope):
@@ -156,17 +150,5 @@ class TypeChecker:
     #             self.errors.append()#duda
     #             return ErrorType(IntType)
 
-    # @visitor.when(VariableNode)
-    # def visit(self, node, scope):
-    #     pass
-
-    # @visitor.when(InstantiateNode)
-    # def visit(self, node, scope):
-    #     pass
-
-    #Métodos Auxiliares
-    def RetAttr(object):
-         return list(object.__dict__.items())
-
-
+  
     
