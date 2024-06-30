@@ -3,9 +3,9 @@ from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
 from cmp.ast_h import HulkPrintVisitor
 import os
-# from cmp.sentactic_analyzer import TypeCollector
-# from cmp.sentactic_analyzer import TypeBuilder
-# from cmp.sentactic_analyzer import TypeChecker
+from cmp.sentactic_analyzer import TypeCollector
+from cmp.sentactic_analyzer import TypeBuilder
+from cmp.sentactic_analyzer import TypeChecker
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -32,7 +32,7 @@ def hacer_lex(archivo, stop = False):
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        viever = HulkPrintVisitor()
+        viewer = HulkPrintVisitor()
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
@@ -42,22 +42,25 @@ def hacer_lex(archivo, stop = False):
         #input()
         print()
         result = parser.parse(lexer.tokenize(contenido))
-        v = viever.visit(result)
+        v = viewer.visit(result)
         print()
         print("AST = " + v)
         print()
-        print_visitor.visit(result)
         print(result)
         print(archivo)
         if stop:
             input()
 
-        # collector = TypeCollector(errors)
-        # collector.visit(ast)
+        collector = TypeCollector()
+        collector.visit(result)
 
-        # builder = TypeBuilder(collector.context, errors)
-        # builder.visit(ast)
-            
+        builder = TypeBuilder(collector.context, collector.errors)
+        builder.visit(result)
+
+        # checker = TypeChecker(builder.context,builder.errors)
+        # scope = checker.visit(result)
+
+         
 def todos():
     # Obtener la ruta de la carpeta actual
     ruta = os.getcwd() + "/programs/shorts/"
@@ -75,8 +78,8 @@ def uno(archivo):
 
     
 #todos()
-uno("programs/shorts/Debug.hulk")
-#uno("programs/shorts/test7.hulk")
+#uno("programs/shorts/Debug.hulk")
+uno("programs/shorts/test32.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
 

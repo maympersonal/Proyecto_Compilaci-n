@@ -19,11 +19,12 @@ class Attribute:
         return str(self)
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name:str, param_names:list, params_types, return_type, body):
         self.name = name
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
+        self.body = body
 
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
@@ -57,15 +58,14 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, name:str, typex):
+    def define_attribute(self, attr):#comprobar
         try:
-            self.get_attribute(name)
+            self.get_attribute(attr.name)
         except SemanticError:
-            attribute = Attribute(name, typex)
-            self.attributes.append(attribute)
-            return attribute
+            self.attributes.append(attr)
+            return attr
         else:
-            raise SemanticError(f'Attribute "{name}" is already defined in {self.name}.')
+            raise SemanticError(f'Attribute "{attr.name}" is already defined in {self.name}.')
 
     def get_method(self, name:str):
         try:
@@ -77,13 +77,11 @@ class Type:
                 return self.parent.get_method(name)
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
-
-    def define_method(self, name:str, param_names:list, param_types:list, return_type):
-        if name in (method.name for method in self.methods):
-            raise SemanticError(f'Method "{name}" already defined in {self.name}')
-
-        method = Method(name, param_names, param_types, return_type)
-        self.methods.append(method)
+   
+    def define_method(self,newMethod):#comprobar
+        if newMethod.name in (method.name for method in self.methods):
+            raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
+        self.methods.append(newMethod)
         return method
 
     def all_attributes(self, clean=True):
@@ -156,6 +154,7 @@ class IntType(Type):
 class Context:
     def __init__(self):
         self.types = {}
+        self.methods = {}#agregado
 
     def create_type(self, name:str):
         if name in self.types:
@@ -169,7 +168,22 @@ class Context:
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
 
-    def __str__(self):
+    def create_method(self, newMethod):#agregado
+        arguments = zip(newMethod.param_names, newMethod.params_types)
+        try:
+            self.methods[newMethod.name,arguments]
+            raise SemanticError(f'The Method ({name}) is already in context.')
+        except KeyError:
+            self.methods[newMethod.name,arguments] = newMethod
+            return newMethod
+
+    def get_method(self, name:str, arguments:list):
+        try:
+            return self.methods[name,arguments]
+        except KeyError:
+            raise SemanticError(f'Method "{name}" is not defined.')
+
+    def __str__(self):# modificar
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
 
     def __repr__(self):
