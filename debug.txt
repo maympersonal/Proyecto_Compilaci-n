@@ -14385,42 +14385,67 @@ state 354
 
 Parser track:
 
-(1): var_use ['a']
-(2): atom [<cmp.ast_h.VarUse object at 0x75925f46d180>]
-(3): identifier [<cmp.ast_h.VarUse object at 0x75925f46d180>]
-(4): Number [5.0]
-(5): identifier [<cmp.ast_h.Number object at 0x75925f46d210>]
-(6): base_exponent [<cmp.ast_h.Number object at 0x75925f46d210>]
-(7): factor1 [<cmp.ast_h.Number object at 0x75925f46d210>]
-(8): term [<cmp.ast_h.Number object at 0x75925f46d210>]
-(9): aritmetic_operation [<cmp.ast_h.Number object at 0x75925f46d210>]
-(10): expression ['<cmp.ast_h.Number object at 0x75925f46d210>']
-(11): inst [<cmp.ast_h.Number object at 0x75925f46d210>]
-(12): var_init [<cmp.ast_h.VarUse object at 0x75925f46d180>, '=', <cmp.ast_h.Number object at 0x75925f46d210>]
-(13): var_init_list [<cmp.ast_h.VarInit object at 0x75925f46d2d0>]
-(14): var_use ['a']
-(15): atom [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(16): identifier [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(17): base_exponent [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(18): factor1 [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(19): term [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(20): aritmetic_operation [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(21): expression ['<cmp.ast_h.VarUse object at 0x75925f46d2a0>']
-(22): var_decl_expr [<cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(23): var_dec ['let', [<cmp.ast_h.VarInit object at 0x75925f46d2d0>], 'in', <cmp.ast_h.VarUse object at 0x75925f46d2a0>]
-(24): expression [<cmp.ast_h.VarDeclaration object at 0x75925f46d0f0>]
-(25): inst [<cmp.ast_h.VarDeclaration object at 0x75925f46d0f0>]
-(26): inst_list [<cmp.ast_h.VarDeclaration object at 0x75925f46d0f0>]
-(27): program_decl_list [[<cmp.ast_h.VarDeclaration object at 0x75925f46d0f0>]]
-(28): program ['[<cmp.ast_h.VarDeclaration object at 0x75925f46d0f0>]']
+(1): var_use ['x']
+(2): atom [<cmp.ast_h.VarUse object at 0x000002538E4B4C80>]
+(3): identifier [<cmp.ast_h.VarUse object at 0x000002538E4B4C80>]
+(4): Number [0.0]
+(5): identifier [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(6): base_exponent [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(7): factor1 [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(8): term [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(9): aritmetic_operation [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(10): expression ['<cmp.ast_h.Number object at 0x000002538E4B4CB0>']
+(11): argument [<cmp.ast_h.Number object at 0x000002538E4B4CB0>]
+(12): Number [10.0]
+(13): identifier [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(14): base_exponent [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(15): factor1 [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(16): term [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(17): aritmetic_operation [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(18): expression ['<cmp.ast_h.Number object at 0x000002538E4B4D10>']
+(19): argument [<cmp.ast_h.Number object at 0x000002538E4B4D10>]
+(20): build_in_range ['range', '(', <cmp.ast_h.Number object at 0x000002538E4B4CB0>, ',', <cmp.ast_h.Number object at 0x000002538E4B4D10>, ')']
+(21): build_in_functions [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(22): atom [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(23): identifier [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(24): base_exponent [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(25): factor1 [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(26): term [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(27): aritmetic_operation [<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>]
+(28): expression ['<cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>']
+(29): var_use ['x']
+(30): atom [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(31): identifier [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(32): base_exponent [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(33): factor1 [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(34): term [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(35): aritmetic_operation [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(36): expression ['<cmp.ast_h.VarUse object at 0x000002538E4B4E60>']
+(37): argument [<cmp.ast_h.VarUse object at 0x000002538E4B4E60>]
+(38): build_in_print ['print', '(', <cmp.ast_h.VarUse object at 0x000002538E4B4E60>, ')']
+(39): build_in_functions [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(40): atom [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(41): identifier [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(42): base_exponent [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(43): factor1 [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(44): term [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(45): aritmetic_operation [<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(46): expression ['<cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>']
+(47): for_loop ['for', '(', <cmp.ast_h.VarUse object at 0x000002538E4B4C80>, 'in', <cmp.ast_h.BinaryBuildInFunction object at 0x000002538E4B4D70>, ')', <cmp.ast_h.UnaryBuildInFunction object at 0x000002538E4B4DD0>]
+(48): flux_control [<cmp.ast_h.ForLoop object at 0x000002538E4B4EC0>]
+(49): inst [<cmp.ast_h.ForLoop object at 0x000002538E4B4EC0>]
+(50): inst_list [<cmp.ast_h.ForLoop object at 0x000002538E4B4EC0>, ';']
+(51): program_decl_list [[<cmp.ast_h.ForLoop object at 0x000002538E4B4EC0>]]
+(52): program ['[<cmp.ast_h.ForLoop object at 0x000002538E4B4EC0>]']
 
 AST:
 
 
 Program (
-	\__ VarDeclaration (
-		\__ VarInit (
-			\__ VarUse (a None) 
-			\__ 5.0 
-			\__ TypeDowncast (None)) 
-		\__ VarUse (a None)))
+	\__ ForLoop (
+		\__ VarUse (x None) 
+		\__ BinaryBuildInFunction (range 
+			\__ Number (0.0) 
+			\__ Number (10.0)) 
+		\__ UnaryBuildInFunction (print 
+			\__ VarUse (x None))))
