@@ -111,15 +111,15 @@ class TypeChecker:
     def visit(self,node,scope):
         try:
             method = self.context.get_method(node.identifier,node.arguments)
-            for i in range(0,len(node.arguments)):
-                if 
+            # for i in range(0,len(node.arguments)):
+                # if 
         except SemanticError as e:
             self.errors.append(e)
 
     @visitor.when(MethodDeclaration)
     def visit(self,node,scope):
         try:
-            param_names, params_types = zip[*node.parameters]
+            param_names, params_types = zip[node.parameters] #ver si hace falta *node.parameters o sirve sin *
             method = Method(node.identifier, param_names, params_types, node.type_anotation,node.body)
             self.context.create_method(node)
         except SemanticError as e:
