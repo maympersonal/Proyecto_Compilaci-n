@@ -527,55 +527,55 @@ class HulkParser(Parser):
     def atribute_declaration(self, p):
         self.parsertrack.append("atribute_declaration "+str([v for v in p]))
         if len(p) == 3:
-            return VarInit(p.identifier, p.expression)
+            return TypeVarInit(p.identifier, p.expression)
         else:
-            return VarInit(p.identifier, p.expression, p.type_downcast)
+            return TypeVarInit(p.identifier, p.expression, p.type_downcast)
 
     
     @_('IDENTIFIER parameters RETURN expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.expression, parameters = p.parameters)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.expression, parameters = p.parameters)
         
     @_('IDENTIFIER parameters function_full_declaration')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, parameters = p.parameters)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration, parameters = p.parameters)
         
     @_('IDENTIFIER LPAREN RPAREN RETURN expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.expression)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.expression)
         
     @_('IDENTIFIER LPAREN RPAREN function_full_declaration')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration)
         
     @_('IDENTIFIER parameters type_anotation RETURN expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation, parameters = p.parameters)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation, parameters = p.parameters)
         
     @_('IDENTIFIER parameters type_anotation function_full_declaration')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation, parameters = p.parameters)
         
     @_('IDENTIFIER LPAREN RPAREN type_anotation RETURN expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.expression, type_anotation = p.type_anotation)
         
     @_('IDENTIFIER LPAREN RPAREN type_anotation RETURN conditional_expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.conditional_expression, type_anotation = p.type_anotation)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.conditional_expression, type_anotation = p.type_anotation)
         
     @_('IDENTIFIER LPAREN RPAREN type_anotation function_full_declaration')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return MethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation)
+        return TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration, type_anotation = p.type_anotation)
     
     
     # Llamada a función
@@ -605,7 +605,7 @@ class HulkParser(Parser):
     @_('AS identifier')
     def type_downcast(self, p):
         self.parsertrack.append("type_downcast "+str([v for v in p]))
-        return TypeDowncast(p[1])
+        return p[1]
 
     # Lista de argumentos
     @_('argument', 
@@ -688,12 +688,12 @@ class HulkParser(Parser):
     @_('IDENTIFIER LPAREN RPAREN type_anotation')
     def virtual_method(self, p):
         self.parsertrack.append("virtual_method "+str([v for v in p]))
-        return VirtualMethod(p[0], p[3])
+        return ProtocolMethodDeclaration(p[0], p[3])
     
     @_('IDENTIFIER parameters type_anotation')
     def virtual_method(self, p):
         self.parsertrack.append("virtual_method "+str([v for v in p]))
-        return VirtualMethod(p[0], p[2], p[1])
+        return ProtocolMethodDeclaration(p[0], p[2], p[1])
     
        
     # Vector
@@ -751,7 +751,7 @@ class HulkParser(Parser):
     def build_in_functions(self, p):
         self.parsertrack.append("build_in_functions "+str([v for v in p]))
         return NoParamBuildInFunction(p[0])
-
+                
     # Constantes integradas
     @_('PI_CONST', 
        'E_CONST')

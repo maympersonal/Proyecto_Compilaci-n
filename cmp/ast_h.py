@@ -22,22 +22,6 @@ class Program(Node):
         return f'{self.__class__.__name__} ({decls})'
 
 
-
-# Se usa en el parser en la regla `program_level_decl : type_declaration` 
-# o `program_level_decl : function_declaration` o `program_level_decl : protocol_declaration`.
-# Se le pasa `identifier` y `body`.
-class TypeDeclaration(Node):
-
-    def __init__(self, identifier, body):
-        super().__init__()
-        self.identifier = identifier
-        self.body = body
-
-    def print_visitor(self, visitor):
-        identifier = visitor.visit(self.identifier)
-        body = visitor.visit(self.body)
-        return f'{self.__class__.__name__} ({identifier} {body})'
-
 # Se usa en el parser en la regla `program_level_decl : function_declaration`.
 # Se le pasa `identifier`, `body`, `type_anotation` y `parameters`.
 class FunctionDeclaration(Node):
@@ -90,6 +74,12 @@ class VarInit(Node):
         expression = visitor.visit(self.expression)
         type_downcast = visitor.visit(self.type_downcast) if self.type_downcast!=None else self.type_downcast
         return f'{self.__class__.__name__} ({identifier} {expression} {type_downcast})'
+
+# Se usa en el parser en la regla `atribute_declaration : identifier ASSIGN expression` 
+# o `atribute_declaration : identifier ASSIGN expression type_downcast`.
+# Se le pasa `identifier`, `expression` y `type_downcast`.
+class TypeVarInit(VarInit):
+    pass
 
 # Se usa en el parser en la regla `identifier : atom` 
 # o `identifier : fully_typed_param`.
@@ -626,7 +616,6 @@ class VarAttr(Node):
 
     def print_visitor(self, visitor):
         attr = self.attr if isinstance(self.attr, str) else visitor.visit(self.attr)
-        print(attr)
         return f'{self.__class__.__name__} ({self.identifier} {attr})'
 
 # Nodo utilizado en el parser para representar la declaración de tipos.
@@ -684,7 +673,7 @@ class DeclarationScope(Node):
 
 # Nodo utilizado en el parser para representar la declaración de un método.
 # Se utiliza para definir la estructura de un método dentro de una clase o módulo.       
-class MethodDeclaration(Node):
+class TypeMethodDeclaration(Node):
     def __init__(self, identifier, body, type_anotation = None, parameters=[]):
         super().__init__()
         self.identifier = identifier
@@ -712,7 +701,7 @@ class ProtocolDeclaration(Node):
 
 # Node used in the parser to represent a virtual method declaration.
 # It is used to define the structure of a virtual method in the language.
-class VirtualMethod(Node):
+class ProtocolMethodDeclaration(Node):
     def __init__(self, method_name, type_annotation, parameters=None):
         super().__init__()
         self.method_name = method_name

@@ -60,6 +60,7 @@ class Type:
 
     def define_attribute(self, attr):#comprobar
         try:
+            print(attr)
             self.get_attribute(attr.name)
         except SemanticError:
             self.attributes.append(attr)
@@ -82,7 +83,7 @@ class Type:
         if newMethod.name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
         self.methods.append(newMethod)
-        return method
+        return newMethod
 
     def all_attributes(self, clean=True):
         plain = OrderedDict() if self.parent is None else self.parent.all_attributes(False)
@@ -169,7 +170,7 @@ class Context:
             raise SemanticError(f'Type "{name}" is not defined.')
 
     def create_method(self, newMethod):#agregado
-        arguments = zip(newMethod.param_names, newMethod.params_types)
+        arguments= zip(newMethod.param_names,newMethod.param_types)
         try:
             self.methods[newMethod.name,arguments]
             raise SemanticError(f'The Method ({name}) is already in context.')
@@ -177,9 +178,9 @@ class Context:
             self.methods[newMethod.name,arguments] = newMethod
             return newMethod
 
-    def get_method(self, name:str, arguments:list):
+    def get_method(self, name:str, param_types:list):
         try:
-            return self.methods[name,arguments]
+            return self.methods[name,param_types]
         except KeyError:
             raise SemanticError(f'Method "{name}" is not defined.')
 
@@ -194,7 +195,7 @@ class VariableInfo:
         self.name = name
         self.type = vtype
 
-class Scope:
+class SemanticScope:
     def __init__(self, parent=None):
         self.locals = []
         self.parent = parent
@@ -205,7 +206,7 @@ class Scope:
         return len(self.locals)
 
     def create_child(self):
-        child = Scope(self)
+        child = SemanticScope(self)
         self.children.append(child)
         return child
 
