@@ -25,7 +25,10 @@ class BaseHulkToCil:
     def instructions(self):
         return self.current_function.instructions
     
-    def register_local(self, vinfo):
+    def register_local(self, vinfo: VariableInfo):
+        print('!!!!!!!!!!!!!!AQUIIII')
+        print(self.current_function)
+        print(vinfo.name)
         vinfo.name = f'local_{self.current_function.name[9:]}_{vinfo.name}_{len(self.localvars)}'
         local_node = cil.LocalNode(vinfo.name)
         self.localvars.append(local_node)
@@ -78,16 +81,16 @@ class HulkToCil(BaseHulkToCil):
         self.register_instruction(cil.ArgNode(instance))
         self.register_instruction(cil.StaticCallNode(main_method_name, result))
         self.register_instruction(cil.ReturnNode(0))
-        self.current_function = None
-        self.current_type = self.context.get_type('Global')
+        self.current_function = self.register_function('main') #? dudoso esto
+        # self.current_type = self.context.get_type('Global')
 
         for decl in node.program_decl_list:
             self.visit(decl, scope)
-
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
     @visitor.when(VarInit)
     def visit(self, node, scope):
+        # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
         var = self.register_local(VariableInfo(node.identifier, self.context.get_type(node.type_downcast)))
         self.current_vars[node.id] = var
         value = self.visit(node.expr, scope)
@@ -107,32 +110,36 @@ class HulkToCil(BaseHulkToCil):
 
     @visitor.when(Add)
     def visit(self, node, scope):
-        left = self.visit(node.left, scope)
-        right = self.visit(node.right, scope)
-        var = self.define_internal_local()
+        # self.current_function = self.register_function("add_function")
+        left = self.visit(node.term, scope)
+        right = self.visit(node.aritmetic_operation, scope)
+        var = self.define_internal_local()   # aquiii
         self.register_instruction(cil.PlusNode(var, left, right))
         return var
     
     @visitor.when(Sub)
     def visit(self, node, scope):
-        left = self.visit(node.left, scope)
-        right = self.visit(node.right, scope)
+        # self.current_function = self.register_function("sub_function")
+        left = self.visit(node.term, scope)
+        right = self.visit(node.aritmetic_operation, scope)
         var = self.define_internal_local()
         self.register_instruction(cil.MinusNode(var, left, right))
         return var
     
     @visitor.when(Mult)
     def visit(self, node, scope):
-        left = self.visit(node.left, scope)
-        right = self.visit(node.right, scope)
+        # self.current_function = self.register_function("mult_function")
+        left = self.visit(node.factor, scope)
+        right = self.visit(node.term, scope)
         var = self.define_internal_local()
         self.register_instruction(cil.StarNode(var, left, right))
         return var
     
     @visitor.when(Div)
     def visit(self, node, scope):
-        left = self.visit(node.left, scope)
-        right = self.visit(node.right, scope)
+        # self.current_function = self.register_function("div_function")
+        left = self.visit(node.factor, scope)
+        right = self.visit(node.term, scope)
         var = self.define_internal_local()
         self.register_instruction(cil.DivNode(var, left, right))
         return var
@@ -146,6 +153,7 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(Power)
     def visit(self, node, scope):
+        # self.current_function = self.register_function("pow_function")
         base = self.visit(node.base_exponent, scope)
         exp = self.visit(node.factor, scope)
         var = self.define_internal_local()

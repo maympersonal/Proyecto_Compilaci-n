@@ -7,6 +7,7 @@ from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCil
+from cmp.cil_h import get_formatter
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -67,12 +68,19 @@ def hacer_lex(archivo, stop = False):
         checker = TypeChecker(builder.context,builder.errors)
         scope = checker.visit(result)
 
+        print("SCOPE ")
         print(str(scope))#.locals))
+        print("SCOPE PARENT ?")
         print(str(scope.parent))
+        print("SCOPE CHILDREN")
         print(str(scope.children))
         
-        # hulk_to_cil = HulkToCil(builder.context)
-        # cil_ast = hulk_to_cil.visit(result, scope)
+        hulk_to_cil = HulkToCil(builder.context)
+        cil_ast = hulk_to_cil.visit(result, scope)
+        formatter = get_formatter()
+        print("CCCCCIIILLLLLLL")
+        print("-------------------")
+        print(formatter(cil_ast))
          
 def todos():
     # Obtener la ruta de la carpeta actual
