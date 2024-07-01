@@ -135,7 +135,7 @@ class TypeChecker:
 
     @visitor.when(Program)
     def visit(self, node, scope=None):
-
+        self.context.create_type('Global')
         self.context.create_method(Method('print',['x'],['String'],'Void',[]))
         self.context.create_method(Method('sin',['x'],['Number'],'Number',[]))
         self.context.create_method(Method('cos',['x'],['Number'],'Number',[]))
@@ -155,10 +155,10 @@ class TypeChecker:
     def visit(self,node,scope):
         arg1Type = self.visit(node.argument1,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.argument1.identifier} "is not Number')) 
+            self.errors.append(SemanticError(f'The type of the base is not Number')) 
         arg2Type = self.visit(node.argument2,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.argument2.identifier} "is not Number')) 
+            self.errors.append(SemanticError(f'The type of x is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
 
@@ -167,11 +167,11 @@ class TypeChecker:
         arg1Type = self.visit(node.term,scope)
         print( arg1Type)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.term.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the right member is not Number')) 
         arg2Type = self.visit(node.aritmetic_operation,scope)
         print( arg2Type)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.aritmetic_operation.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of left member is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
 
@@ -179,10 +179,10 @@ class TypeChecker:
     def visit(self,node,scope):
         arg1Type = self.visit(node.term,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.term.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the right member is not Number')) 
         arg2Type = self.visit(node.aritmetic_operation,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.aritmetic_operation.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of left member is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
 
@@ -190,10 +190,10 @@ class TypeChecker:
     def visit(self,node,scope):
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.factor.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the right member is not Number')) 
         arg2Type = self.visit(node.term,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.term.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of left member is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
     
@@ -201,10 +201,10 @@ class TypeChecker:
     def visit(self,node,scope):
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.factor.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the right member is not Number')) 
         arg2Type = self.visit(node.term,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.term.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of left member is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
 
@@ -212,21 +212,21 @@ class TypeChecker:
     def visit(self,node,scope):
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.factor.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the right member is not Number')) 
         arg2Type = self.visit(node.term,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.term.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of left member is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
 
     @visitor.when(Power)
-    def visit(self,node,scope):
+    def visit(self,node,scope): 
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.factor.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the base is not Number')) 
         arg2Type = self.visit(node.base_exponent,scope)
         if arg2Type.name != 'Number':
-            self.errors.append(SemanticError(f'The type of" {node.base_exponent.identifier} "is not Number')) 
+            self.errors.append(SemanticError('The type of the exponent is not Number')) 
         if arg1Type.name == 'Number' and arg2Type.name == 'Number':
             return arg1Type 
     
@@ -258,9 +258,15 @@ class TypeChecker:
     @visitor.when(FunctionCall)#terminar luego
     def visit(self,node,scope):
         try:
-            method = self.context.get_method(node.identifier,node.arguments)
-            # for i in range(0,len(node.arguments)):
-                # if 
+            param_types = [self.visit(argument) for argument in node.arguments]#arreglar
+            method = self.context.get_method(node.identifier,param_types)
+            child = scope.create_child()
+            for i in range(0,len(param_types)):
+                child.define_variable(method.param_names[i],param_types[i])
+            if self.visit(method.body,child).conforms_to(Type(method.return_type)):
+                return Type(method.return_type)
+            else:
+                self.errors.append(f'The body don\'t retur the correct return_type')
         except SemanticError as e:
             self.errors.append(e)
 

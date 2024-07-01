@@ -170,17 +170,17 @@ class Context:
             raise SemanticError(f'Type "{name}" is not defined.')
 
     def create_method(self, newMethod):#agregado
-        arguments = zip(newMethod.param_names, newMethod.param_types)
+         
         try:
-            self.methods[newMethod.name,arguments]
+            self.methods[newMethod.name,newMethod.param_types]
             raise SemanticError(f'The Method ({name}) is already in context.')
         except KeyError:
-            self.methods[newMethod.name,arguments] = newMethod
+            self.methods[newMethod.name,newMethod.param_types] = newMethod
             return newMethod
 
-    def get_method(self, name:str, arguments:list):
+    def get_method(self, name:str, param_types:list):
         try:
-            return self.methods[name,arguments]
+            return self.methods[name,param_types]
         except KeyError:
             raise SemanticError(f'Method "{name}" is not defined.')
 

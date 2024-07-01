@@ -77,10 +77,12 @@ def hacer_lex(archivo, stop = False):
         
         hulk_to_cil = HulkToCil(builder.context)
         cil_ast = hulk_to_cil.visit(result, scope)
+
         formatter = get_formatter()
         print("CCCCCIIILLLLLLL")
         print("-------------------")
         print(formatter(cil_ast))
+
          
 def todos():
     # Obtener la ruta de la carpeta actual
