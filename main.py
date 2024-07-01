@@ -55,12 +55,21 @@ def hacer_lex(archivo, stop = False):
 
         collector = TypeCollector()
         collector.visit(result)
+        print(collector.context.types)
+        print(collector.errors)
 
         builder = TypeBuilder(collector.context, collector.errors)
         builder.visit(result)
+        print(builder)
+        print(builder.errors)
 
-        # checker = TypeChecker(builder.context,builder.errors)
-        # scope = checker.visit(result)
+
+        checker = TypeChecker(builder.context,builder.errors)
+        scope = checker.visit(result)
+
+        print(str(scope))#.locals))
+        print(str(scope.parent))
+        print(str(scope.children))
         
         # hulk_to_cil = HulkToCil(builder.context)
         # cil_ast = hulk_to_cil.visit(result, scope)
@@ -84,6 +93,7 @@ def uno(archivo):
 #todos()
 #uno("programs/shorts/Debug.hulk")
 uno("programs/shorts/test2.hulk")
+#uno("programs/shorts/test55.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
 
