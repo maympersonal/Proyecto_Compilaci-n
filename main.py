@@ -6,6 +6,8 @@ import os
 from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
+from cmp.HulkToCil import HulkToCil
+from cmp.cil_h import get_formatter
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -36,12 +38,13 @@ def hacer_lex(archivo, stop = False):
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
-        #for token in tokens:
-           #print(token)
+        # for token in tokens:
+        #    print(token)
 
         #input()
         print()
         result = parser.parse(lexer.tokenize(contenido))
+        
         v = viewer.visit(result)
         print()
         print("AST = " + v)
@@ -53,12 +56,32 @@ def hacer_lex(archivo, stop = False):
 
         collector = TypeCollector()
         collector.visit(result)
+        print(collector.context.types)
+        print(collector.errors)
 
         builder = TypeBuilder(collector.context, collector.errors)
         builder.visit(result)
+        print(builder)
+        print(builder.errors)
 
-        # checker = TypeChecker(builder.context,builder.errors)
-        # scope = checker.visit(result)
+
+        checker = TypeChecker(builder.context,builder.errors)
+        scope = checker.visit(result)
+
+        print("SCOPE ")
+        print(str(scope))#.locals))
+        print("SCOPE PARENT ?")
+        print(str(scope.parent))
+        print("SCOPE CHILDREN")
+        print(str(scope.children))
+        
+        hulk_to_cil = HulkToCil(builder.context)
+        cil_ast = hulk_to_cil.visit(result, scope)
+
+        formatter = get_formatter()
+        print("CCCCCIIILLLLLLL")
+        print("-------------------")
+        print(formatter(cil_ast))
 
          
 def todos():
@@ -79,7 +102,8 @@ def uno(archivo):
     
 #todos()
 #uno("programs/shorts/Debug.hulk")
-uno("programs/shorts/test32.hulk")
+uno("programs/shorts/test2.hulk")
+#uno("programs/shorts/test55.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
 
