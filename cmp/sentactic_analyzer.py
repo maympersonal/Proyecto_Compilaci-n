@@ -112,7 +112,7 @@ class TypeChecker:
         try:
             method = self.context.get_method(node.identifier,node.arguments)
             for i in range(0,len(node.arguments)):
-                if 
+                #
         except SemanticError as e:
             self.errors.append(e)
 
