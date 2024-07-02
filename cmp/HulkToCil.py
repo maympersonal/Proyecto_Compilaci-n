@@ -1,10 +1,10 @@
 import cmp.cil_h as cil
-from cmp.semantic import VariableInfo
+from cmp.semantic import VariableInfo, Context
 from cmp.ast_h import *
 import math
 
 class BaseHulkToCil:
-    def __init__(self, context) -> None:
+    def __init__(self, context: Context) -> None:
         self.dottypes = []
         self.dotdata = []
         self.dotcode = []
@@ -68,7 +68,7 @@ class HulkToCil(BaseHulkToCil):
         pass
 
     @visitor.when(Program)
-    def visit (self, node, scope):
+    def visit (self, node: Program, scope):
         self.dotdata.append(cil.DataNode('pi', math.pi))
         self.current_function = self.register_function('main')
         
@@ -89,7 +89,7 @@ class HulkToCil(BaseHulkToCil):
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
     
     @visitor.when(VarInit)
-    def visit(self, node, scope):
+    def visit(self, node: VarInit, scope: Scope):
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
         var = self.register_local(VariableInfo(node.identifier, self.context.get_type(node.type_downcast)))
         self.current_vars[node.id] = var
@@ -98,18 +98,18 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(VarDeclaration)
-    def visit(self, node, scope):
+    def visit(self, node: VarDeclaration, scope: Scope):
         new_scope = Scope(scope)
         for var_init in node.var_init_list:
             self.visit(var_init, new_scope)
         return self.visit(node.body, new_scope)
     
     @visitor.when(VarUse)
-    def visit(self, node, scope):
+    def visit(self, node: VarUse, scope: Scope):
         return self.current_vars[node.id]
 
     @visitor.when(Add)
-    def visit(self, node, scope):
+    def visit(self, node: VarUse, scope: Scope):
         # self.current_function = self.register_function("add_function")
         left = self.visit(node.term, scope)
         right = self.visit(node.aritmetic_operation, scope)
@@ -118,7 +118,7 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(Sub)
-    def visit(self, node, scope):
+    def visit(self, node: Sub, scope: Scope):
         # self.current_function = self.register_function("sub_function")
         left = self.visit(node.term, scope)
         right = self.visit(node.aritmetic_operation, scope)
@@ -127,7 +127,7 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(Mult)
-    def visit(self, node, scope):
+    def visit(self, node: Mult, scope: Scope):
         # self.current_function = self.register_function("mult_function")
         left = self.visit(node.factor, scope)
         right = self.visit(node.term, scope)
@@ -136,7 +136,7 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(Div)
-    def visit(self, node, scope):
+    def visit(self, node: Div, scope: Scope):
         # self.current_function = self.register_function("div_function")
         left = self.visit(node.factor, scope)
         right = self.visit(node.term, scope)
@@ -145,17 +145,17 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(Number)
-    def visit(self, node, scope):
+    def visit(self, node: Number, scope: Scope):
         # self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Atom)
-    def visit(self, node, scope):
+    def visit(self, node: Atom, scope: Scope):
         # self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Power)
-    def visit(self, node, scope):
+    def visit(self, node: Power, scope: Scope):
         # self.current_function = self.register_function("pow_function")
         base = self.visit(node.base_exponent, scope)
         exp = self.visit(node.factor, scope)
@@ -164,7 +164,7 @@ class HulkToCil(BaseHulkToCil):
         return var
     
     @visitor.when(UnaryBuildInFunction)
-    def visit(self, node, scope):
+    def visit(self, node: UnaryBuildInFunction, scope: Scope):
         arg = self.visit(node.argument, scope)
         if node.func == 'sen':
             var = self.define_internal_local()
@@ -183,6 +183,8 @@ class HulkToCil(BaseHulkToCil):
             self.register_instruction(cil.ToStrNode(var, arg))
             return var
         elif node.func == 'print':
+            # print("ARGS: "+ str(arg))
+            # print(self.context.get_type(arg))
             self.register_instruction(cil.PrintNode(arg))
             return arg       
         
