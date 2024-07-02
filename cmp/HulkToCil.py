@@ -146,9 +146,12 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(Number)
     def visit(self, node, scope):
+        self.register_instruction(cil.ValueNode(node.value))
         return node.value
+    
     @visitor.when(Atom)
     def visit(self, node, scope):
+        self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Power)
