@@ -167,7 +167,8 @@ class Context:
         try:
             return self.types[name]
         except KeyError:
-            raise SemanticError(f'Type "{name}" is not defined.')
+            return None
+            #! raise SemanticError(f'Type "{name}" is not defined.')
 
     def create_method(self, newMethod):#agregado
         arguments= zip(newMethod.param_names,newMethod.param_types)

@@ -1,17 +1,18 @@
 import cmp.cil_h as cil
 from cmp.semantic import VariableInfo, Context
 from cmp.ast_h import *
+from typing import List, Dict
 import math
 
 class BaseHulkToCil:
     def __init__(self, context: Context) -> None:
-        self.dottypes = []
-        self.dotdata = []
-        self.dotcode = []
-        self.current_type = None
-        self.current_method = None
-        self.current_function = None
-        self.context = context
+        self.dottypes: List[cil.TypeNode] = []
+        self.dotdata: List[cil.DataNode] = []
+        self.dotcode: List[cil.FunctionNode] = []
+        self.current_type: cil.TypeNode = None
+        self.current_method : cil.MethodNode = None
+        self.current_function: cil.FunctionNode = None
+        self.context: Context = context
     
     @property
     def params(self):
@@ -26,9 +27,9 @@ class BaseHulkToCil:
         return self.current_function.instructions
     
     def register_local(self, vinfo: VariableInfo):
-        print('!!!!!!!!!!!!!!AQUIIII')
-        print(self.current_function)
-        print(vinfo.name)
+        # print('!!!!!!!!!!!!!!AQUIIII')
+        # print(self.current_function)
+        # print(vinfo.name)
         vinfo.name = f'local_{self.current_function.name[9:]}_{vinfo.name}_{len(self.localvars)}'
         local_node = cil.LocalNode(vinfo.name)
         self.localvars.append(local_node)
@@ -71,7 +72,8 @@ class HulkToCil(BaseHulkToCil):
     def visit (self, node: Program, scope):
         self.dotdata.append(cil.DataNode('pi', math.pi))
         self.current_function = self.register_function('main')
-        
+        self.current_vars: Dict[str, VariableInfo] = {}
+        # ?arriba así ?
         # instance = self.define_internal_local()
         # result = self.define_internal_local()
         
@@ -90,10 +92,14 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(VarInit)
     def visit(self, node: VarInit, scope: Scope):
+        var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
+        # var_type = node.expression
+        var = self.register_local(VariableInfo(node.identifier.identifier, self.context.get_type(var_type)))
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        var = self.register_local(VariableInfo(node.identifier, self.context.get_type(node.type_downcast)))
-        self.current_vars[node.id] = var
-        value = self.visit(node.expr, scope)
+        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
+        # print(node.identifier.identifier)
+        self.current_vars[node.identifier.identifier] = var
+        value = self.visit(node.expression, scope)
         self.register_instruction(cil.AssignNode(var, value))
         return var
     
@@ -106,7 +112,9 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(VarUse)
     def visit(self, node: VarUse, scope: Scope):
-        return self.current_vars[node.id]
+        # print('!!!!!!!!!!!!!!AQUIIII')
+        # print(self.current_vars[node.identifier]+ "aaaa ??")
+        return self.current_vars[node.identifier]
 
     @visitor.when(Add)
     def visit(self, node: VarUse, scope: Scope):
