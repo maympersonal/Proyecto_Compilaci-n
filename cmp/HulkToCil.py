@@ -11,6 +11,7 @@ class BaseHulkToCil:
         self.current_type = None
         self.current_method = None
         self.current_function = None
+        self.current_vars = {}
         self.context = context
     
     @property
@@ -91,9 +92,11 @@ class HulkToCil(BaseHulkToCil):
     @visitor.when(VarInit)
     def visit(self, node, scope):
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        var = self.register_local(VariableInfo(node.identifier, self.context.get_type(node.type_downcast)))
-        self.current_vars[node.id] = var
-        value = self.visit(node.expr, scope)
+        var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
+        # var_type = node.expression
+        var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
+        self.current_vars[node.identifier] = var
+        value = self.visit(node.expression, scope)
         self.register_instruction(cil.AssignNode(var, value))
         return var
     
@@ -106,7 +109,7 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(VarUse)
     def visit(self, node, scope):
-        return self.current_vars[node.id]
+        return self.current_vars[node.identifier]
 
     @visitor.when(Add)
     def visit(self, node, scope):
