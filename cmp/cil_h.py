@@ -170,6 +170,10 @@ class PowNode(InstructionNode):
         self.x = x
         self.dest = dest
 
+class ValueNode(Node):
+    def __init__(self, value) -> None:
+        self.value = value
+
 def get_formatter():
 
     class PrintVisitor(object):
@@ -283,6 +287,10 @@ def get_formatter():
         @visitor.when(ReturnNode)
         def visit(self, node):
             return f'RETURN {node.value if node.value is not None else ""}'
+        
+        @visitor.when(ValueNode)
+        def visit(self, node):
+            return ""
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))

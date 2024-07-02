@@ -70,18 +70,18 @@ class HulkToCil(BaseHulkToCil):
     @visitor.when(Program)
     def visit (self, node, scope):
         self.dotdata.append(cil.DataNode('pi', math.pi))
-        self.current_function = self.register_function('entry')
+        self.current_function = self.register_function('main')
         
-        instance = self.define_internal_local()
-        result = self.define_internal_local()
+        # instance = self.define_internal_local()
+        # result = self.define_internal_local()
         
-        main_method_name = self.to_function_name('main', 'Main')
+        # main_method_name = self.to_function_name('main', 'Main')
         
-        self.register_instruction(cil.AllocateNode('Main', instance))
-        self.register_instruction(cil.ArgNode(instance))
-        self.register_instruction(cil.StaticCallNode(main_method_name, result))
-        self.register_instruction(cil.ReturnNode(0))
-        self.current_function = self.register_function('main') #? dudoso esto
+        # self.register_instruction(cil.AllocateNode('Main', instance))
+        # self.register_instruction(cil.ArgNode(instance))
+        # self.register_instruction(cil.StaticCallNode(main_method_name, result))
+        # self.register_instruction(cil.ReturnNode(0))
+        # self.current_function = self.register_function('main') #? dudoso esto
         # self.current_type = self.context.get_type('Global')
 
         for decl in node.program_decl_list:
@@ -146,9 +146,12 @@ class HulkToCil(BaseHulkToCil):
     
     @visitor.when(Number)
     def visit(self, node, scope):
+        # self.register_instruction(cil.ValueNode(node.value))
         return node.value
+    
     @visitor.when(Atom)
     def visit(self, node, scope):
+        # self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Power)
