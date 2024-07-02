@@ -63,8 +63,8 @@ class MIPSTranslator:
     def op_move(r1, dest):
         return f"move {dest}, {r1}"
 
-    def op_mult(r1, r2, dest):
-        return f"mult {dest}, {r1}, {r2}"
+    def op_mul(r1, r2, dest):
+        return f"mul {dest}, {r1}, {r2}"
     
     def op_multu(r1, r2, dest):
         return f"multu {dest}, {r1}, {r2}"
@@ -95,6 +95,7 @@ class MIPSTranslator:
     
     def op_syscall():
         return "syscall"
+    
 
 class HulkMIPSGenerator:
     def __init__(self):
@@ -142,6 +143,40 @@ class HulkMIPSGenerator:
         elif elem in self.locals:
             return 4 * (len(self.params) + self.locals.index(elem))
     # end stack managing
+
+    def three_addr_op(self, op, node):
+        # load 3 address to registers
+        dest_reg = self.get_unused_register()
+        left_reg = self.get_unused_register()
+        right_reg = self.get_unused_register()
+
+        # get operands offsets
+        left_offset = self.get_stack_offset(node.left)
+        right_offset = self.get_stack_offset(node.right)
+
+        # load values to registers
+        if left_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.left)), left_reg))
+        if right_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.right)), right_reg))
+
+        # add register values
+        print(op(left_reg, right_reg, dest_reg))
+
+        # get dest offset
+        dest_offset = self.get_stack_offset(node.dest)
+
+        # store value to local
+        print(MIPSTranslator.op_sw(dest_reg, dest_offset, REG_FRAME_POINTER))
+
+        # TODO: implement global register state
+        # clear registers
+        self.clear_registers()
+
     @visitor.on('node')
     def visit(self, node, tabs):
         pass
@@ -163,6 +198,8 @@ class HulkMIPSGenerator:
         for op_def in node.dotcode:
             # print(type(op_def))
             self.visit(op_def)
+        print(MIPSTranslator.op_li(10, REG_VALUE_0))
+        print(MIPSTranslator.op_syscall())
 
     @visitor.when(cil_h.FunctionNode)
     def visit(self, node: cil_h.FunctionNode):
@@ -214,78 +251,23 @@ class HulkMIPSGenerator:
     @visitor.when(cil_h.PlusNode)
     def visit(self, node: cil_h.PlusNode):
         # print(f"{node.dest} = {node.left} + {node.right}")
-
-        # print(node.left)
-        # print(node.right)
-        # print(self.locals)
+        self.three_addr_op(MIPSTranslator.op_add, node)
         
-        # load 3 address to registers
-        dest_reg = self.get_unused_register()
-        left_reg = self.get_unused_register()
-        right_reg = self.get_unused_register()
-
-        # get operands offsets
-        left_offset = self.get_stack_offset(node.left)
-        right_offset = self.get_stack_offset(node.right)
-
-        # load values to registers
-        if left_offset is not None:
-            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
-        else:
-            print(MIPSTranslator.op_li(int(float(node.left)), left_reg))
-        if right_offset is not None:
-            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
-        else:
-            print(MIPSTranslator.op_li(int(float(node.right)), right_reg))
-
-        # add register values
-        print(MIPSTranslator.op_add(left_reg, right_reg, dest_reg))
-
-        # get dest offset
-        dest_offset = self.get_stack_offset(node.dest)
-
-        # store value to local
-        print(MIPSTranslator.op_sw(dest_reg, dest_offset, REG_FRAME_POINTER))
-
-        # TODO: implement global register state
-        # clear registers
-        self.clear_registers()
 
     @visitor.when(cil_h.MinusNode)
     def visit(self, node: cil_h.MinusNode):
         # print(f"{node.dest} = {node.left} - {node.right}")
-        
-        # load 3 address to registers
-        dest_reg = self.get_unused_register()
-        left_reg = self.get_unused_register()
-        right_reg = self.get_unused_register()
+        self.three_addr_op(MIPSTranslator.op_sub, node)
 
-        # get operands offsets
-        left_offset = self.get_stack_offset(node.left)
-        right_offset = self.get_stack_offset(node.right)
+    @visitor.when(cil_h.StarNode)
+    def visit(self, node: cil_h.StarNode):
+        # print(f"{node.dest} = {node.left} * {node.right}")
+        self.three_addr_op(MIPSTranslator.op_mul, node)
 
-        # load values to registers
-        if left_offset is not None:
-            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
-        else:
-            print(MIPSTranslator.op_li(int(float(node.left)), left_reg))
-        if right_offset is not None:
-            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
-        else:
-            print(MIPSTranslator.op_li(int(float(node.right)), right_reg))
-
-        # add register values
-        print(MIPSTranslator.op_sub(left_reg, right_reg, dest_reg))
-
-        # get dest offset
-        dest_offset = self.get_stack_offset(node.dest)
-
-        # store value to local
-        print(MIPSTranslator.op_sw(dest_reg, dest_offset, REG_FRAME_POINTER))
-
-        # TODO: implement global register state
-        # clear registers
-        self.clear_registers()
+    @visitor.when(cil_h.DivNode)
+    def visit(self, node: cil_h.DivNode):
+        # print(f"{node.dest} = {node.left} / {node.right}")
+        self.three_addr_op(MIPSTranslator.op_div, node)
     
     @visitor.when(cil_h.PrintNode)
     def visit(self, node: cil_h.PrintNode):

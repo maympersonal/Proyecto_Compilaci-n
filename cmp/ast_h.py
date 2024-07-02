@@ -65,7 +65,7 @@ class VarInit(Node):
 
     def __init__(self, identifier, expression, type_downcast=None):
         super().__init__()
-        self.identifier = identifier
+        self.identifier = identifier.identifier
         self.expression = expression
         self.type_downcast = type_downcast
 
@@ -89,11 +89,14 @@ class VarUse(Node):
     def __init__(self, identifier, type=None):
         super().__init__()
         self.type = type
-        self.identifier = identifier
+        self._identifier = identifier
+
+    @property
+    def identifier(self):
+        return self._identifier if isinstance(self._identifier, str) else visitor.visit(self._identifier)
 
     def print_visitor(self, visitor):
-        identifier = self.identifier if isinstance(self.identifier, str) else visitor.visit(self.identifier)
-        return f'{self.__class__.__name__} ({identifier} {self.type})'
+        return f'{self.__class__.__name__} ({self.identifier} {self.type})'
 
 # Se usa en el parser en la regla `VectorVarUse : identifier LBRACKET expression RBRACKET`.
 # Se le pasa `identifier` e `index`.
