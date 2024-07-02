@@ -26,6 +26,9 @@ REG_TEMP = ["$t0","$t1","$t2","$t3","$t4","$t5","$t6","$t7","$t8","$t9"]
 # temporal saved registers (preserved)
 REG_SAV = ["$s0","$s1","$s2","$s3","$s4","$s5","$s6","$s7"]
 
+# const MIPS char value offset
+CHAR_OFFSET = 8
+
 class MIPSTranslator:
     def op_abs(src, dest):
         return f"abs {dest}, {src}"
@@ -50,6 +53,9 @@ class MIPSTranslator:
     
     def op_divu(r1, r2, dest):
         return f"divu {dest}, {r1}, {r2}"
+    
+    def op_li(imm, dest):
+        return f"li {dest}, {imm}"
     
     def op_lw(r1, offset, dest):
         return f"lw {dest}, {offset}({r1})"
@@ -85,7 +91,10 @@ class MIPSTranslator:
         return f"sub {dest}, {r1}, {r2}"
     
     def op_sw(r1, offset, dest):
-        return f"sw {dest}, {offset}({r1})"
+        return f"sw {r1}, {offset}({dest})"
+    
+    def op_syscall():
+        return "syscall"
 
 class HulkMIPSGenerator:
     def __init__(self):
@@ -150,6 +159,7 @@ class HulkMIPSGenerator:
         for data_def in node.dotdata:
             pass
 
+        print("main:")
         for op_def in node.dotcode:
             # print(type(op_def))
             self.visit(op_def)
@@ -174,19 +184,19 @@ class HulkMIPSGenerator:
 
         # for param in node.params:
         #     print(param)
-        for local in node.localvars:
-            print(f"LOCAL {local.name}")
+        # for local in node.localvars:
+        #     print(f"LOCAL {local.name}")
         
         # allocate params and locals in stack (stack grows backwards)
-        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, REG_STACK_POINTER, -4 * (len(node.params) + len(node.localvars))))
+        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, -4 * (len(node.params) + len(node.localvars)), REG_STACK_POINTER))
 
         # store sp in ra
         print(MIPSTranslator.op_sw(REG_STACK_POINTER, 0, REG_RETURN_ADDR))
-        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, REG_STACK_POINTER, -4))
+        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, -4, REG_STACK_POINTER))
 
         # store sp in saved fp
-        print(MIPSTranslator.op_sw(REG_STACK_POINTER, 0, old_fp))
-        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, REG_STACK_POINTER, -4))
+        print(MIPSTranslator.op_sw(old_fp, 0, REG_STACK_POINTER))
+        print(MIPSTranslator.op_addiu(REG_STACK_POINTER, -4, REG_STACK_POINTER))
 
         for instruction in node.instructions:
             self.visit(instruction)
@@ -203,11 +213,11 @@ class HulkMIPSGenerator:
     
     @visitor.when(cil_h.PlusNode)
     def visit(self, node: cil_h.PlusNode):
-        print(f"{node.dest} = {node.left} + {node.right}")
+        # print(f"{node.dest} = {node.left} + {node.right}")
 
-        print(node.left)
-        print(node.right)
-        print(self.locals)
+        # print(node.left)
+        # print(node.right)
+        # print(self.locals)
         
         # load 3 address to registers
         dest_reg = self.get_unused_register()
@@ -219,8 +229,14 @@ class HulkMIPSGenerator:
         right_offset = self.get_stack_offset(node.right)
 
         # load values to registers
-        print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
-        print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
+        if left_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.left)), left_reg))
+        if right_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.right)), right_reg))
 
         # add register values
         print(MIPSTranslator.op_add(left_reg, right_reg, dest_reg))
@@ -237,7 +253,7 @@ class HulkMIPSGenerator:
 
     @visitor.when(cil_h.MinusNode)
     def visit(self, node: cil_h.MinusNode):
-        print(f"{node.dest} = {node.left} - {node.right}")
+        # print(f"{node.dest} = {node.left} - {node.right}")
         
         # load 3 address to registers
         dest_reg = self.get_unused_register()
@@ -249,8 +265,14 @@ class HulkMIPSGenerator:
         right_offset = self.get_stack_offset(node.right)
 
         # load values to registers
-        print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
-        print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
+        if left_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, left_offset, left_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.left)), left_reg))
+        if right_offset is not None:
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, right_offset, right_reg))
+        else:
+            print(MIPSTranslator.op_li(int(float(node.right)), right_reg))
 
         # add register values
         print(MIPSTranslator.op_sub(left_reg, right_reg, dest_reg))
@@ -264,3 +286,11 @@ class HulkMIPSGenerator:
         # TODO: implement global register state
         # clear registers
         self.clear_registers()
+    
+    @visitor.when(cil_h.PrintNode)
+    def visit(self, node: cil_h.PrintNode):
+        straddr_offset = self.get_stack_offset(node.str_addr)
+        print(MIPSTranslator.op_lw(REG_FRAME_POINTER, straddr_offset, REG_ARG[0]))
+        # print(MIPSTranslator.op_lw(REG_ARG[0], CHAR_OFFSET, REG_ARG[0]))
+        print(MIPSTranslator.op_li(1, REG_VALUE_0)) # fist param is SYSCALL_PRINTSTR 4
+        print(MIPSTranslator.op_syscall())
