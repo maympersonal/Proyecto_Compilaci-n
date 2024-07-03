@@ -163,20 +163,23 @@ class Context:
         typex = self.types[name] = Type(name)
         return typex
 
-    def get_type(self, name:str):
+    def get_type(self, name:str,errors):
         try:
             return self.types[name]
         except KeyError:
-            return None
-            #! raise SemanticError(f'Type "{name}" is not defined.')
+            errors.append(SemanticError(f'Type "{name}" is not defined.'))
+            return ErrorType(name)
 
+    def get_types(self, names:list,errors):
+        return [self.get_type(name,errors) for name in names]
+       
     def create_method(self, newMethod):#agregado
-        arguments= zip(newMethod.param_names,newMethod.param_types)
         try:
-            self.methods[newMethod.name,arguments]
-            raise SemanticError(f'The Method ({name}) is already in context.')
+            key = Obtain_Key(newMethod.param_types)
+            self.methods[newMethod.name,key]
+            raise SemanticError(f'The Method ({name}) is already in context with those parameters.')#ver
         except KeyError:
-            self.methods[newMethod.name,arguments] = newMethod
+            self.methods[newMethod.name,key] = newMethod
             return newMethod
 
     def get_method(self, name:str, param_types:list):
@@ -184,6 +187,19 @@ class Context:
             return self.methods[name,param_types]
         except KeyError:
             raise SemanticError(f'Method "{name}" is not defined.')
+
+    def semantic_get_method(self, name:str, param_types:list):
+        methParams = filter_by_name(self.methods,name)
+        for key in methParams:
+            method =  methParams[key]
+            if len(param_types) == len(method.param_types):
+                correct = True
+                for i in range(0,len(method.param_types)):
+                    if not(param_types[i].conforms_to(method.param_types[i])):
+                        correct = False
+                if correct:
+                    return method
+        return None
 
     def __str__(self):# modificar
         return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
@@ -228,3 +244,10 @@ class SemanticScope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+#herramientas
+def Obtain_Key(param_types):
+    string = ",".join([parType.name for parType in param_types])
+    return string
+def filter_by_name(data, name):
+    return {key: value for key, value in data.items() if key[0] == name}

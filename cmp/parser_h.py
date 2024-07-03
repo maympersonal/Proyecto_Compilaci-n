@@ -286,8 +286,6 @@ class HulkParser(Parser):
         self.parsertrack.append("function_declaration "+str([v for v in p]))
         return FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration)
     
-
-
     @_('FUNCTION IDENTIFIER parameters type_anotation function_full_declaration')
     def function_declaration(self, p):
         self.parsertrack.append("function_declaration "+str([v for v in p]))
