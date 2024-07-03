@@ -100,7 +100,9 @@ class MIPSTranslator:
 class HulkMIPSGenerator:
     def __init__(self):
         self._registers = list(REG_TEMP)
+        self._float_registers = list([f"$f{i}" for i in range(32)])
         self._used_registers = []
+        self._used_float_registers = []
         # stack = params + locals
         self._params = []
         self._locals = []
@@ -114,11 +116,28 @@ class HulkMIPSGenerator:
         self._used_registers.append(register)
         
     def get_unused_register(self):
-        reg = self.unused_registers.pop()
+        reg = next(iter(self.unused_registers))
         self.allocate_register(reg)
         return reg
+    
     def clear_registers(self):
         self._used_registers.clear()
+
+    @property
+    def unused_float_registers(self) -> set:
+        return set(self._float_registers).difference(set(self._used_float_registers))
+    
+    def allocate_float_register(self, register):
+        self._used_float_registers.append(register)
+
+    def get_unused_register(self):
+        reg = next(iter(self.unused_float_registers))
+        self.allocate_float_register(reg)
+        return reg
+    
+    def clear_float_registers(self):
+        self._used_float_registers.clear()
+
     # end register managing
 
     # stack managing
@@ -143,6 +162,8 @@ class HulkMIPSGenerator:
         elif elem in self.locals:
             return 4 * (len(self.params) + self.locals.index(elem))
     # end stack managing
+
+    
 
     def three_addr_op(self, op, node):
         # load 3 address to registers
@@ -243,6 +264,23 @@ class HulkMIPSGenerator:
         # must restore locals context
         self.params = params_snapshot 
         self.locals = locals_snapshot
+    
+    @visitor.when(cil_h.AssignNode)
+    def visit(self, node: cil_h.AssignNode):
+        reg = self.get_unused_register()
+
+        if isinstance(node.source, int):
+            print(MIPSTranslator.op_li(node.source, reg))
+        elif isinstance(node.source, str):
+            print(node.source)
+        else:
+            source_offset = self.get_stack_offset(node.source)
+            print(MIPSTranslator.op_lw(REG_FRAME_POINTER, source_offset, reg))
+
+        dest_offset = self.get_stack_offset(node.dest)
+        print(MIPSTranslator.op_sw(REG_FRAME_POINTER, dest_offset, reg))
+
+        self.clear_registers()
 
     @visitor.when(cil_h.LocalNode)
     def visit(self, node: cil_h.LocalNode):
@@ -272,6 +310,7 @@ class HulkMIPSGenerator:
     @visitor.when(cil_h.PrintNode)
     def visit(self, node: cil_h.PrintNode):
         straddr_offset = self.get_stack_offset(node.str_addr)
+        value = f"{node.str_addr}"
         print(MIPSTranslator.op_lw(REG_FRAME_POINTER, straddr_offset, REG_ARG[0]))
         # print(MIPSTranslator.op_lw(REG_ARG[0], CHAR_OFFSET, REG_ARG[0]))
         print(MIPSTranslator.op_li(1, REG_VALUE_0)) # fist param is SYSCALL_PRINTSTR 4
