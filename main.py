@@ -75,14 +75,22 @@ def hacer_lex(archivo, stop = False):
         print("SCOPE CHILDREN")
         print(str(scope.children))
         
-        hulk_to_cil = HulkToCil(builder.context)
-        cil_ast = hulk_to_cil.visit(result, scope)
+        # hulk_to_cil = HulkToCil(builder.context)
+        # cil_ast = hulk_to_cil.visit(result, scope)
 
-        formatter = get_formatter()
-        print("CCCCCIIILLLLLLL")
-        print("-------------------")
-        print(formatter(cil_ast))
+        # formatter = get_formatter()
+        # print("CCCCCIIILLLLLLL")
+        # print("-------------------")
+        # print(formatter(cil_ast))
 
+        v = viewer.visit(result)
+        print()
+        print("AST = " + v)
+        print()
+        print(result)
+        print(archivo)
+        if stop:
+            input()
          
 def todos():
     # Obtener la ruta de la carpeta actual
