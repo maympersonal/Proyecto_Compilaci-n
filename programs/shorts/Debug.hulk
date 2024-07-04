@@ -1,1 +1,1 @@
-let a=5 in a
+let hello = "Hello World!" in print(hello);

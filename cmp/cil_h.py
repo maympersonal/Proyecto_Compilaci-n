@@ -149,6 +149,12 @@ class PrintNode(InstructionNode):
     def __init__(self, str_addr):
         self.str_addr = str_addr
 
+class PrintStrNode(PrintNode):
+    pass
+
+class PrintIntNode(PrintNode):
+    pass
+
 class SenNode(InstructionNode):
     def __init__(self, dest, x):
         self.x = x
