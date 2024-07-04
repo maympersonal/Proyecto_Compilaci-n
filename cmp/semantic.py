@@ -177,7 +177,7 @@ class Context:
         try:
             key = Obtain_Key(newMethod.param_types)
             self.methods[newMethod.name,key]
-            raise SemanticError(f'The Method ({name}) is already in context with those parameters.')#ver
+            raise SemanticError(f'The Method ({newMethod.name}) is already in context with those parameters.')#ver
         except KeyError:
             self.methods[newMethod.name,key] = newMethod
             return newMethod
