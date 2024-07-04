@@ -62,7 +62,7 @@ def hacer_lex(archivo, stop = False):
         builder = TypeBuilder(collector.context, collector.errors)
         builder.visit(result)
         print(builder)
-        print(builder.errors)
+        print(builder.errors)   
 
 
         checker = TypeChecker(builder.context,builder.errors)
@@ -74,20 +74,27 @@ def hacer_lex(archivo, stop = False):
         print("SCOPE CHILDREN")
         print(str(scope.children))
         
-        # hulk_to_cil = HulkToCilVisitor(builder.context)
-        # cil_ast = hulk_to_cil.visit(result, scope)
+
+        # v = viewer.visit(result)
+        # print()
+        # print("AST = " + v)
+        # print()
+        # print(result)
+        # print(archivo)
+        
+        
+        hulk_to_cil = HulkToCilVisitor(builder.context)
+        cil_ast = hulk_to_cil.visit(result, scope)
 
         # formatter = get_formatter()
+        # print(
+        #     "-------------------"
+
+        # )
+        # print()
         # print("CCCCCIIILLLLLLL")
         # print("-------------------")
         # print(formatter(cil_ast))
-
-        v = viewer.visit(result)
-        print()
-        print("AST = " + v)
-        print()
-        print(result)
-        print(archivo)
         if stop:
             input()
          
