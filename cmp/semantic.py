@@ -208,9 +208,10 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype: None):
+    def __init__(self, name, vtype: None, data=None):
         self.name = name
         self.type = vtype
+        self.data = data
 
 class SemanticScope:
     def __init__(self, parent=None):
