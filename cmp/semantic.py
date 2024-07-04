@@ -237,7 +237,18 @@ class SemanticScope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            print("*******************StopIteration************************")
+            return self.parent.find_variable(vname, self.index) if self.parent != None else None
+
+    def find_variable_childeren(self, vname):
+        try:
+            return next(x for x in self.locals if x.name == vname)
+        except StopIteration:
+            for child in self.children:
+                var = child.find_variable_childeren(vname)
+                if not(var == None):
+                    return var
+            return None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
