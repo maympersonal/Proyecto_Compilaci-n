@@ -1,5 +1,5 @@
 import cmp.cil_h as cil
-from cmp.semantic import VariableInfo, Context, VoidType
+from cmp.semantic import VariableInfo, Context, Type
 from cmp.ast_h import *
 from typing import List, Dict
 import math
@@ -9,7 +9,7 @@ class BaseHulkToCil:
         self.dottypes: List[cil.TypeNode] = []
         self.dotdata: List[cil.DataNode] = []
         self.dotcode: List[cil.FunctionNode] = []
-        self.current_type: cil.TypeNode = None
+        self.current_type: Type = None
         self.current_method : cil.MethodNode = None
         self.current_function: cil.FunctionNode = None
         self.context: Context = context
@@ -20,15 +20,15 @@ class BaseHulkToCil:
         self.attrs = {}
     
     @property
-    def params(self):
+    def params(self)-> List[cil.ParamNode]:
         return self.current_function.params
     
     @property
-    def localvars(self):
+    def localvars(self)-> List[cil.LocalNode]:
         return self.current_function.localvars
     
     @property
-    def instructions(self):
+    def instructions(self)-> List[cil.InstructionNode]:
         return self.current_function.instructions
     
     def generate_next_string_id(self):
@@ -102,9 +102,29 @@ class BaseHulkToCil:
     def is_attribute(self, vname):
         return vname not in [p.name for p in self.params] + [l.name for l in self.localvars]
     
+    def add_builtin_main(self):
+        builtin_types = ["Object", "Number", "String", "Boolean"]
+        for typex in builtin_types:
+            self.current_function = cil.FunctionNode(self.to_function_name('main', typex), [], [], [])
+            self.params.append(cil.ParamNode('self'))
+            self.register_instruction(cil.ReturnNode('self'))
+            self.dotcode.append(self.current_function)
     
+    def build_main(self, node: TypeDeclaration):
+        self.current_function = self.register_function(self.to_function_name('main', node.identifier))
+        
+        self.params.append(cil.ParamNode('self'))
+        self.current_type.define_method('main', [], [], 'Object')
+        
+        for attr, (_, attr_type) in self.attrs[self.current_type.name].items():
+            instance = self.define_internal_local()
+            self.register_instruction(cil.ArgNode('self'))
+            self.register_instruction(cil.StaticCallNode(self.to_function_name(f'{attr}_main', attr_type), instance))
+            self.register_instruction(cil.SetAttribNode('self', self.to_attr_name(node.identifier,attr), instance, node.identifier))
 
-
+        self.register_instruction(cil.ReturnNode('self'))
+        
+    
 
 class HulkToCil(BaseHulkToCil):
     @visitor.on('node')

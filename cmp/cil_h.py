@@ -100,9 +100,11 @@ class GetAttribNode(InstructionNode):
         self.attr = attr
 
 class SetAttribNode(InstructionNode):
-    def __init__(self, value, attr):
-        self.value = value
+    def __init__(self, instance, attr, value, typex):
+        self.instance = instance
         self.attr = attr
+        self.value = value
+        self.type = typex
 
 class GetIndexNode(InstructionNode):
     pass
