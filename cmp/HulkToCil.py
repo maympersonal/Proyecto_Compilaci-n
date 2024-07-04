@@ -204,7 +204,61 @@ class HulkToCil:
         
         self.register_instruction(cil.SubstringNode(result, 'self', index.name, length.name))
         self.register_instruction(cil.ReturnNode(result)) 
+    
+    # Number
+    def number_sqrt(self):
+        self.params.append(cil.ParamNode('self'))
         
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.SqrtNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))  
+    
+    def number_sin(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.SinNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    def number_cos(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.CosNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    def number_tan(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.TanNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    def number_exp(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.ExpNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    def number_log(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        base = VariableInfo('base', 'Number')
+        self.register_param(base)
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.LogNode(result, base.name, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    # ------------------------------------------- 
+    
     def cil_abstract_method(self, mname, cname, specif_code):
         
         self.current_type = self.context.get_type(cname)
@@ -260,6 +314,14 @@ class HulkToCil:
             self.cil_abstract_method("abort", "Number", self.object_abort),
             self.cil_abstract_method("copy", "Number", self.object_copy),
             self.cil_abstract_method("type_name", "Number", self.object_type_name),
+            #?  builtin math functions
+            self.cil_abstract_method("sqrt", "Number", self.number_sqrt),
+            self.cil_abstract_method("sin", "Number", self.number_sin),
+            self.cil_abstract_method("cos", "Number", self.number_cos),
+            self.cil_abstract_method("tan", "Number", self.number_tan),
+            self.cil_abstract_method("exp", "Number", self.number_exp),
+            self.cil_abstract_method("log", "Number", self.number_log),
+            #? random 
         ]
         
         # Boolean

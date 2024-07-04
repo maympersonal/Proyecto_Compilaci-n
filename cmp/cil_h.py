@@ -227,9 +227,25 @@ class TanNode(InstructionNode):
         self.x = x
         self.dest = dest
 
+class SqrtNode(InstructionNode):
+    def __init__(self, dest, x):
+        self.x = x
+        self.dest = dest
+
+class LogNode(InstructionNode):
+    def __init__(self, dest, base, x):
+        self.base = base
+        self.x = x
+        self.dest = dest
+
 class PowNode(InstructionNode):
     def __init__(self, dest, base, x):
         self.base = base
+        self.x = x
+        self.dest = dest
+
+class ExpNode(InstructionNode):
+    def __init__(self, dest, x):
         self.x = x
         self.dest = dest
 
