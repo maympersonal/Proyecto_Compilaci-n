@@ -1,5 +1,5 @@
 import cmp.cil_h as cil
-from cmp.semantic import VariableInfo, Context
+from cmp.semantic import VariableInfo, Context, VoidType
 from cmp.ast_h import *
 from typing import List, Dict
 import math
@@ -13,6 +13,11 @@ class BaseHulkToCil:
         self.current_method : cil.MethodNode = None
         self.current_function: cil.FunctionNode = None
         self.context: Context = context
+        self.string_count = 0
+        self._count = 0
+        self.internal_count = 0
+        self.methods = {}
+        self.attrs = {}
     
     @property
     def params(self):
@@ -26,30 +31,52 @@ class BaseHulkToCil:
     def instructions(self):
         return self.current_function.instructions
     
-    def register_local(self, vinfo: VariableInfo):
-        # print('!!!!!!!!!!!!!!AQUIIII')
-        # print(self.current_function)
-        # print(vinfo.name)
-        vinfo.name = f'local_{self.current_function.name[9:]}_{vinfo.name}_{len(self.localvars)}'
+    def generate_next_string_id(self):
+        self.string_count += 1
+        return f'string_{self.string_count}'
+    
+    def generate_next_id(self):
+        self._count += 1
+        return f'{self._count}'
+    
+    def get_local(self, name):
+        return f'local_{name}'
+    
+    def register_local(self, vinfo: VariableInfo = None):
+        if vinfo.name:
+            vinfo.name = f'local_{vinfo.name}'
+        else:
+            vinfo.name = f'local_{len(self.current_function.localvars)}'
+            
         local_node = cil.LocalNode(vinfo.name)
         self.localvars.append(local_node)
         return vinfo.name
 
     def define_internal_local(self):
-        vinfo = VariableInfo('internal', None)
-        return self.register_local(vinfo)
+        return self.register_local()
 
     def register_instruction(self, instruction):
         self.instructions.append(instruction)
         return instruction
     
     def to_function_name(self, method_name, type_name):
-        return f'function_{method_name}_at_{type_name}'
+        # example: Main_main
+        return f'{type_name}_{method_name}'
+    
+    def to_data_name(self, type_name, value):
+        return f'{type_name}_{value}'
+    
+    def to_attr_name(self, type_name, attr_name):
+        return f'{type_name}_{attr_name}'
     
     def register_function(self, function_name):
         function_node = cil.FunctionNode(function_name, [], [], [])
         self.dotcode.append(function_node)
         return function_node
+    
+    def get_method_id(self, method_name, type_name):
+        method_id, _ = self.methods[type_name][method_name]
+        return method_id
     
     def register_type(self, name):
         type_node = cil.TypeNode(name)
@@ -61,6 +88,22 @@ class BaseHulkToCil:
         data_node = cil.DataNode(vname, value)
         self.dotdata.append(data_node)
         return data_node
+    
+    def internal_param_vname(self, vname):
+        self.internal_count += 1
+        return f'param_{vname}'
+    
+    def register_param(self, vinfo: VariableInfo):
+        vinfo.name = self.internal_param_vname(vinfo.name)
+        arg_node = cil.ParamNode(vinfo.name)
+        self.params.append(arg_node)
+        return vinfo.name
+    
+    def is_attribute(self, vname):
+        return vname not in [p.name for p in self.params] + [l.name for l in self.localvars]
+    
+    
+
 
 
 class HulkToCil(BaseHulkToCil):
