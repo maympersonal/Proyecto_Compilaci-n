@@ -65,7 +65,7 @@ class VarInit(Node):
 
     def __init__(self, identifier, expression, type_downcast=None):
         super().__init__()
-        self.identifier = identifier.identifier
+        self.identifier = identifier
         self.expression = expression
         self.type_downcast = type_downcast
 
@@ -89,14 +89,11 @@ class VarUse(Node):
     def __init__(self, identifier, type=None):
         super().__init__()
         self.type = type
-        self._identifier = identifier
-
-    @property
-    def identifier(self):
-        return self._identifier if isinstance(self._identifier, str) else visitor.visit(self._identifier)
+        self.identifier = identifier
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.identifier} {self.type})'
+        identifier = self.identifier if isinstance(self.identifier, str) else visitor.visit(self.identifier)
+        return f'{self.__class__.__name__} ({identifier} {self.type})'
 
 # Se usa en el parser en la regla `VectorVarUse : identifier LBRACKET expression RBRACKET`.
 # Se le pasa `identifier` e `index`.
@@ -360,9 +357,10 @@ class Power(Factor):
 # - value: representa el valor del átomo, que puede ser un identificador, número, cadena, etc.
 class Atom(Node):
 
-    def __init__(self, value):
+    def __init__(self, value,type_downcast = None):
         super().__init__()
         self.value = value
+        self.type_downcast = type_downcast 
 
 # Se usa en el parser cuando se necesita representar una cadena como un átomo en una expresión.
 # Parámetros que se le pasan a la clase:
@@ -373,8 +371,9 @@ class String(Atom):
         super().__init__(value)
         self.value = value
 
+
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ("{self.value}")'
+        return f'{self.__class__.__name__} ("{self.value}") ({self.type_downcast})'
 
 # Se usa en el parser cuando se necesita representar un número como un átomo en una expresión.
 # Parámetros que se le pasan a la clase:
@@ -386,7 +385,7 @@ class Number(Atom):
         self.value = value
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.value})'
+        return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
 
 # Se usa en el parser cuando se necesita representar un booleano como un átomo en una expresión.
 # Parámetros que se le pasan a la clase:
@@ -398,7 +397,7 @@ class Boolean(Atom):
         self.value = value
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.value})'
+        return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
 
 # Se usa en el parser para representar operaciones unarias en una expresión matemática.
 # Parámetros que se le pasan a la clase:
@@ -547,12 +546,6 @@ class Comparation(Node):
         self.expr1 = expr1
         self.expr2 = expr2
 
-    def print_visitor(self, visitor):
-        argument1 = visitor.visit(self.expr1)
-        argument2 = visitor.visit(self.expr2)
-        return f'({argument1} {argument2})'
-
-class Not_Equal(Comparation):
     def print_visitor(self, visitor):
         expr1 = visitor.visit(self.expr1)
         expr2 = visitor.visit(self.expr2)
