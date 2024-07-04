@@ -246,7 +246,58 @@ class HulkToCil:
             self.cil_abstract_method("abort", "String", self.object_abort),
             self.cil_abstract_method("copy", "String", self.object_copy),
             self.cil_abstract_method("type_name", "String", self.object_type_name),
+            self.cil_abstract_method("length", "String", self.string_length),
+            self.cil_abstract_method("concat", "String", self.string_concat),
+            self.cil_abstract_method("substr", "String", self.string_substr),
         ]
+        
+        # Number
+        # ??
+        self.attrs["Number"] = {"value": (0, "Number")}
+        int_type = cil.TypeNode('Number')
+        int_type.attributes = [VariableInfo('value').name]
+        int_type.methods = [
+            self.cil_abstract_method("abort", "Number", self.object_abort),
+            self.cil_abstract_method("copy", "Number", self.object_copy),
+            self.cil_abstract_method("type_name", "Number", self.object_type_name),
+        ]
+        
+        # Boolean
+        #  ??
+        self.attrs["Boolean"] = {"value": (0, "Boolean")}
+        bool_type = cil.TypeNode('Boolean')
+        bool_type.attributes = [VariableInfo('value').name]
+        bool_type.methods = [
+            self.cil_abstract_method("abort", "Boolean", self.object_abort),
+            self.cil_abstract_method("copy", "Boolean", self.object_copy),
+            self.cil_abstract_method("type_name", "Boolean", self.object_type_name),
+        ]
+        
+        for t in [object_type, string_type, int_type, bool_type]:
+            self.dottypes.append(t)
+    
+    def register_abort(self):
+        self.current_function = cil.FunctionNode(self.to_function_name('abort', self.current_type.name), [], [], [])
+        self.object_abort(self.current_type.name)
+        self.dotcode.append(self.current_function)
+        self.current_function = None
+    
+    def register_copy(self):
+        self.current_function = cil.FunctionNode(self.to_function_name('copy', self.current_type.name), [], [], [])
+        self.object_copy()
+        self.dotcode.append(self.current_function)
+        self.current_function = None
+    
+    def register_type_name(self):
+        self.current_function = cil.FunctionNode(self.to_function_name('type_name', self.current_type.name), [], [], [])
+        self.object_type_name()
+        self.dotcode.append(self.current_function)
+        self.current_function = None
+        
+    def register_object_functions(self):
+        self.register_abort()
+        self.register_copy()
+        self.register_type_name()
         
         
     
