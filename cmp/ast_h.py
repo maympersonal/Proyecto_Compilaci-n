@@ -373,7 +373,7 @@ class String(Atom):
 
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ("{self.value}")'
+        return f'{self.__class__.__name__} ("{self.value}") ({self.type_downcast})'
 
 # Se usa en el parser cuando se necesita representar un número como un átomo en una expresión.
 # Parámetros que se le pasan a la clase:
@@ -385,7 +385,7 @@ class Number(Atom):
         self.value = value
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.value})'
+        return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
 
 # Se usa en el parser cuando se necesita representar un booleano como un átomo en una expresión.
 # Parámetros que se le pasan a la clase:
@@ -397,7 +397,7 @@ class Boolean(Atom):
         self.value = value
 
     def print_visitor(self, visitor):
-        return f'{self.__class__.__name__} ({self.value})'
+        return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
 
 # Se usa en el parser para representar operaciones unarias en una expresión matemática.
 # Parámetros que se le pasan a la clase:
