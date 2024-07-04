@@ -1,1 +1,3 @@
-let x = 42 in print(x);
+type A {
+    
+}

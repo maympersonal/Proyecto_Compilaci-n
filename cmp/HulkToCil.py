@@ -95,8 +95,8 @@ class HulkToCil(BaseHulkToCil):
         var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
         # var_type = node.expression
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        # print(node.identifier)
+        print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
+        print(node.expression)
         var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
         self.current_vars[node.identifier] = var
         value = self.visit(node.expression, scope)
@@ -194,6 +194,12 @@ class HulkToCil(BaseHulkToCil):
             # print("ARGS: "+ str(arg))
             # print(self.context.get_type(arg))
             self.register_instruction(cil.PrintNode(arg))
-            return arg       
+            return arg   
+    @visitor.when(String)
+    def visit(self, node: String, scope: Scope):
+        # print("STRING: "+node.value)
+        return node.value    
+    
+    # @visitor.when(TypeDeclaration)
         
     
