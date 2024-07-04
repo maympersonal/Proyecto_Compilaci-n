@@ -94,10 +94,11 @@ class NotNode(UnaryNode):
     pass
 
 class GetAttribNode(InstructionNode):
-    def __init__(self, dest, type_id, attr):
+    def __init__(self, dest, instance, attr, typex):
         self.dest = dest
-        self.type_id = type_id
+        self.instance = instance
         self.attr = attr
+        self.type_id = typex
 
 class SetAttribNode(InstructionNode):
     def __init__(self, instance, attr, value, typex):

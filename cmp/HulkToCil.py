@@ -4,7 +4,7 @@ from cmp.ast_h import *
 from typing import List, Dict
 import math
 
-class BaseHulkToCil:
+class HulkToCil:
     def __init__(self, context: Context) -> None:
         self.dottypes: List[cil.TypeNode] = []
         self.dotdata: List[cil.DataNode] = []
@@ -124,9 +124,134 @@ class BaseHulkToCil:
 
         self.register_instruction(cil.ReturnNode('self'))
         
+    # METODOS DE TIPOS BUILTIN 
+    # OBJECT
+    
+    def object_abort(self,type):
+        self.data.append(
+            cil.DataNode(f"abort_{type}", f"Abort called from class {type}\n")
+        )
+        error = f"abort_{type}"
+        self.register_instruction(cil.RuntimeErrorNode(error))
+    
+    def object_copy(self):
+        self.params.append(cil.ParamNode('self'))
+        copy_temp = self.define_internal_local()
+        self.register_instruction(cil.AllocateNode(self.current_type.name, copy_temp))
+    
+        for attr in self.attrs[self.current_type.name].keys():
+            attr_temp = self.define_internal_local()
+            attr_name = (
+                self.to_attr_name(self.current_type.name, attr)
+                if self.current_type.name not in ["Number", "String", "Boolean"]
+                else attr
+            )
+            self.register_instruction(
+                cil.GetAttribNode(
+                    attr_temp, 
+                    'self', 
+                    attr_name, 
+                    self.current_type.name)
+                )
+            self.register_instruction(
+                cil.SetAttribNode(
+                    copy_temp, 
+                    attr_name, 
+                    attr_temp, 
+                    self.current_type.name)
+                )
+        self.register_instruction(cil.ReturnNode(copy_temp))
+    
+    def object_type_name(self):
+        self.params.append(cil.ParamNode('self'))
+        self.dotdata.append(cil.DataNode(f"type_name_{self.current_type.name}", f'{self.current_type.name}'))
+        
+        type_name = self.define_internal_local()
+        self.register_instruction(cil.LoadNode(type_name, VariableInfo(f"type_name_{self.current_type.name}", None)))
+        
+        self.register_instruction(cil.ReturnNode(type_name))
+    
+    # STRING
+    def string_length(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.LengthNode(result, 'self'))
+        self.register_instruction(cil.ReturnNode(result))
+    
+    def string_concat(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        other = VariableInfo('other', 'String')
+        self.register_param(other)
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.ConcatNode(result, 'self', other.name))
+        self.register_instruction(cil.ReturnNode(result))
+        
+    def string_substr(self):
+        self.params.append(cil.ParamNode('self'))
+        
+        index = VariableInfo('index', 'Number')
+        self.register_param(index)
+        
+        length = VariableInfo('length', 'Number')
+        self.register_param(length)
+        
+        result = self.define_internal_local()
+        
+        self.register_instruction(cil.SubstringNode(result, 'self', index.name, length.name))
+        self.register_instruction(cil.ReturnNode(result)) 
+        
+    def cil_abstract_method(self, mname, cname, specif_code):
+        
+        self.current_type = self.context.get_type(cname)
+        self.current_method = self.current_type.get_method(mname)
+        self.current_function = cil.FunctionNode(
+            self.to_function_name(mname, cname), [], [], []
+        )
+
+        if mname == "abort":  
+            specif_code(cname)
+        else:
+            specif_code()
+
+        self.code.append(self.current_function)
+        self.current_function = None
+        self.current_type = None
+
+        return (mname, self.to_function_name(mname, cname))
+    
+    def add_builtin_functions(self):
+        # object
+        object_type = cil.TypeNode('Object')
+        object_type.attributes = []
+        object_type.methods = [
+            self.cil_abstract_method("abort", "Object", self.object_abort),
+            self.cil_abstract_method("copy", "Object", self.object_copy),
+            self.cil_abstract_method("type_name", "Object", self.object_type_name),
+        ]
+        
+        # string
+        
+        self.attrs["String"] = {"length": (0, "Number"), "str_ref": (1, "String")}
+        string_type = cil.TypeNode('String')
+        string_type.attributes = [
+            VariableInfo('length').name,
+            VariableInfo('str_ref').name,
+        ]
+        string_type.methods = [
+            self.cil_abstract_method("abort", "String", self.object_abort),
+            self.cil_abstract_method("copy", "String", self.object_copy),
+            self.cil_abstract_method("type_name", "String", self.object_type_name),
+        ]
+        
+        
     
 
-class HulkToCil(BaseHulkToCil):
+class HulkToCilVisitor(HulkToCil):
     @visitor.on('node')
     def visit(self, node):
         pass

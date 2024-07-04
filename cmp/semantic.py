@@ -208,7 +208,7 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype):
+    def __init__(self, name, vtype: None):
         self.name = name
         self.type = vtype
 
