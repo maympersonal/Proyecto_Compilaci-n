@@ -342,9 +342,9 @@ class HulkMIPSGenerator:
     def visit(self, node: cil_h.AssignNode):
         reg = self.get_unused_register()
 
-        if isinstance(node.source, int):
+        if node.type.name == "Number":
             print(MIPSTranslator.op_li(node.source, reg))
-        elif isinstance(node.source, str):
+        elif node.type.name == "String":
             print(node.source)
         else:
             source_offset = self.get_stack_offset(node.source)

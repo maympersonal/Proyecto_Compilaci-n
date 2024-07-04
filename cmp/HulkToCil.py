@@ -97,11 +97,10 @@ class HulkToCil(BaseHulkToCil):
         var_name = node.identifier.identifier
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
         # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        print(node.identifier)
-        var = self.register_local(VariableInfo(var_name, self.context.get_type(var_type)))
+        var = self.register_local(VariableInfo(var_name, var_type))
         self.current_vars[var_name] = var
         value = self.visit(node.expression, scope)
-        self.register_instruction(cil.AssignNode(var, value))
+        self.register_instruction(cil.AssignNode(var, value, var_type))
         return var
     
     @visitor.when(VarDeclaration)
