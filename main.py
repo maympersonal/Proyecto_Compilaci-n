@@ -89,13 +89,13 @@ def hacer_lex(archivo, stop = False):
         code_gen.visit(cil_ast)
 
         v = viewer.visit(result)
-        print()
-        print("AST = " + v)
-        print()
-        print(result)
-        print(archivo)
-        if stop:
-            input()
+        # print()
+        # print("AST = " + v)
+        # print()
+        # print(result)
+        # print(archivo)
+        # if stop:
+        #     input()
          
 def todos():
     # Obtener la ruta de la carpeta actual

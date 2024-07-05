@@ -13,6 +13,8 @@ class BaseHulkToCil:
         self.current_method : cil.MethodNode = None
         self.current_function: cil.FunctionNode = None
         self.context: Context = context
+        self.localvars = []
+        self.params = []
     
     @property
     def params(self):
@@ -51,6 +53,23 @@ class BaseHulkToCil:
         self.dotcode.append(function_node)
         return function_node
     
+    def register_param(self, vinfo):
+        vinfo.name = self.build_internal_param(vinfo.name)
+        arg_node = cil.ParamNode(vinfo.name)
+        self.params.append(arg_node)
+        return vinfo
+    
+    def get_param(self, name):
+        return f"param_{name}"
+
+    def get_var(self, name):
+        return 
+
+    def build_internal_param(self, vname):
+        vname = f"param_{vname}"
+        # self.internal_count += 1
+        return vname
+
     def register_type(self, name):
         type_node = cil.TypeNode(name)
         self.dottypes.append(type_node)
@@ -71,7 +90,7 @@ class HulkToCil(BaseHulkToCil):
     @visitor.when(Program)
     def visit (self, node: Program, scope):
         self.dotdata.append(cil.DataNode('pi', math.pi))
-        self.current_function = self.register_function('main')
+        self.current_function = self.register_function("main")
         self.current_vars: Dict[str, VariableInfo] = {}
         # ?arriba así ?
         # instance = self.define_internal_local()
@@ -85,10 +104,39 @@ class HulkToCil(BaseHulkToCil):
         # self.register_instruction(cil.ReturnNode(0))
         # self.current_function = self.register_function('main') #? dudoso esto
         # self.current_type = self.context.get_type('Global')
-
         for decl in node.program_decl_list:
             self.visit(decl, scope)
         return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
+    
+    @visitor.when(FunctionDeclaration)
+    def visit(self, node: FunctionDeclaration, scope):
+        last_func = self.current_function
+        # self.current_method = self.current_type.get_method(node.identifier)
+
+        self.current_function = self.register_function(node.identifier)
+
+        # self.current_function.params.append()
+        print(node.parameters)
+        for pname in node.parameters:
+            self.register_param(VariableInfo(pname.identifier, "Object"))
+
+        value = self.define_internal_local()
+        self.visit(node.body, value)
+
+        # print(self.current_method)
+        # if isinstance(self.current_method)
+            # value = None
+
+        # self.register_instruction() return
+
+        self.current_function = last_func
+        # self.current_method = None
+
+    # Function body
+    @visitor.when(Scope)
+    def visit(self, node: Scope, return_var):
+        for expr in node.statements:
+            self.visit(expr, return_var)
     
     @visitor.when(VarInit)
     def visit(self, node: VarInit, scope: Scope):

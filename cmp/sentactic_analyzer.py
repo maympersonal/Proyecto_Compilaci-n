@@ -280,7 +280,7 @@ class TypeChecker:
     @visitor.when(FunctionCall)
     def visit(self,node,scope):
         
-        param_types = [self.visit(argument) for argument in node.arguments]
+        param_types = [self.visit(argument, scope) for argument in node.arguments]
         method = self.context.semantic_get_method(node.identifier,param_types)
         if method is None:
             self.errors.append('The method is not defined')
@@ -402,11 +402,11 @@ class TypeChecker:
         print(node.identifier)
         # print(node.type)
         print("*****Buscando variables ******")
-        for vari in scope.parent.locals:
-            print("padre: " + vari.name)
-        for vari in scope.locals:
-            print("hijo: " +vari.name)
-        print("******************************")
+        # for vari in scope.parent.locals:
+        #     print("padre: " + vari.name)
+        # for vari in scope.locals:
+        #     print("hijo: " + vari.name)
+        # print("******************************")
         var = scope.find_variable(node.identifier)
         
         if var != None:
