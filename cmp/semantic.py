@@ -208,11 +208,15 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype: None, data=None):
+    def __init__(self, name, vtype, data=None):
         self.name = name
         self.type = vtype
         self.data = data
 
+# class VectorType(Type):
+#     def __init__(self, name:str,elements_Type : Type):
+#         super.__init__(name)
+#         self.elements_Type = elements_Type
 class SemanticScope:
     def __init__(self, parent=None):
         self.locals = []
@@ -241,15 +245,15 @@ class SemanticScope:
             print("*******************StopIteration************************")
             return self.parent.find_variable(vname, self.index) if self.parent != None else None
 
-    def find_variable_childeren(self, vname):
-        try:
-            return next(x for x in self.locals if x.name == vname)
-        except StopIteration:
-            for child in self.children:
-                var = child.find_variable_childeren(vname)
-                if not(var == None):
-                    return var
-            return None
+    # def find_variable_childeren(self, vname):
+    #     try:
+    #         return next(x for x in self.locals if x.name == vname)
+    #     except StopIteration:
+    #         for child in self.children:
+    #             var = child.find_variable_childeren(vname)
+    #             if not(var == None):
+    #                 return var
+    #         return None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None

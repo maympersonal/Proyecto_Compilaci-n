@@ -87,11 +87,11 @@ class HulkLexer(Lexer):
         t.value = t.value[1:-1]
         return t
 
-    # Definición de valores booleanos
+    '''# Definición de valores booleanos
     @_(r'true|false')
     def BOOLEAN(self, t):
         t.value = True if t.value == 'true' else False
-        return t
+        return t'''
 
     # Definición de identificadores y palabras clave
     IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
