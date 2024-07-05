@@ -15,10 +15,7 @@ class Program(Node):
         self.program_decl_list = program_decl_list
 
     def print_visitor(self, visitor):
-        decls = " , ".join([
-            visitor.visit(pr) for pr in self.program_decl_list
-        ]) if isinstance(self.program_decl_list, list) else visitor.visit(
-            self.program_decl_list)
+        decls = " , ".join([visitor.visit(pr) for pr in self.program_decl_list]) if isinstance(self.program_decl_list, list) else visitor.visit(self.program_decl_list)
         return f'{self.__class__.__name__} ({decls})'
 
 
