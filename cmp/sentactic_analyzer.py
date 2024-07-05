@@ -18,11 +18,14 @@ class TypeCollector(object):
         self.context = Context()
         for declaration in node.program_decl_list:
             self.visit(declaration)
-        self.context.create_type("Object")
+        obj = self.context.create_type("Object")
         self.context.create_type("Void")
         self.context.create_type("Number")
         self.context.create_type("Boolean")
         self.context.create_type("String")
+        iter = self.context.create_type("Iterable")
+        iter.define_method(Method("current",[],[], obj,[]))
+        iter.define_method(Method("next",[],[], obj,[]))
         return self.context  
 
     @visitor.when(TypeDeclaration)
@@ -91,7 +94,7 @@ class TypeBuilder:
             return Method(node.identifier, param_names,param_types,return_type , node.body)
         except SemanticError as e:
             self.errors.append(e)    
-
+    
     @visitor.when(ProtocolDeclaration)
     def visit(self,node):#ver
         try:
@@ -104,7 +107,7 @@ class TypeBuilder:
             self.errors.append(e)    
     
     @visitor.when(ProtocolMethodDeclaration)
-    def visit(self,node):#ver
+    def visit(self,node):
         try:
             param_names = []
             param_types = []
@@ -284,6 +287,20 @@ class TypeChecker:
         method = self.context.semantic_get_method(node.identifier,param_types)
         if method is None:
             self.errors.append('The method is not defined')
+
+    # @visitor.when(VectorRangeDeclaration)
+    # def visit(self,node,scope):
+    #     elemType = self.visit(node.range[0],scope)
+    #     if elemType != None or not(elemType is ErrorType):
+    #         for i in range(1,node)
+
+    # @visitor.when(VectorRangeDeclaration)
+    # def visit(self,node,scope):
+    #     elemType = self.visit(node.range[0],scope)
+    #     if elemType != None or not(elemType is ErrorType):
+    #         for i in range(1,node)
+                 
+    
         
     # @visitor.when(TypeMethodDeclaration)
     # def visit(self,node,scope):
@@ -310,10 +327,14 @@ class TypeChecker:
 
     @visitor.when(ForLoop)#comprobar
     def visit(self,node,scope):
-        varType = self.visit(node.expression)
+
         child = scope.create_child()
-        child.define_variable(node.identifier,varType)
-        return self.visit(node.body)
+        expType = self.visit(node.expression,child)
+        varType = self.visit(node.identifier,child)
+        var = child.find_variable(node.identifier.identifier)
+        var.type = expType
+        node.identifier.type = expType
+        return self.visit(node.body,child)
    
     @visitor.when(VarDeclaration)
     def visit(self,node,scope):
@@ -322,6 +343,19 @@ class TypeChecker:
             self.visit(var,child)
         return self.visit(node.body,child)
 
+    @visitor.when(InlineConditional)
+    def visit(self,node,scope):#arreglar
+
+        conType = self.visit(node.conditional_expression,scope)
+
+        if conType.name != 'Boolean':
+            self.errors.append('The conditional expression is not evaluable')
+            return TypeError()
+        self.visit(node.else_elif_statement,scope)
+
+        return self.visit(node.expression,scope)
+        
+    
     @visitor.when(Not)
     def visit(self,node,scope):
         conType = self.visit(node.condition,scope)
@@ -330,23 +364,129 @@ class TypeChecker:
         else:
             scope.errors.append(SemanticError('The type in not Boolean'))
             return ErrorType()
-    
-    @visitor.when(Equal)
+
+    ''' def __init__(self, condition, conditional_expression):'''
+
+    @visitor.when(And)
     def visit(self,node,scope):
         con1Type = self.visit(node.condition,scope)
-        con2Type = self.visit(node.condition,scope)
-        if conType.name == 'Boolean':
-            return conType
-        else:
-            scope.errors.append(SemanticError('The type in not Boolean'))
+        con2Type = self.visit(node.conditional_expression,scope)
+        if con1Type.name != 'Boolean':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Boolean'))
+        if con2Type.name != 'Boolean':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Boolean'))   
+        if  con1Type.name != 'Boolean' or con2Type.name != 'Boolean':
             return ErrorType()
+        return con1Type
+
+    @visitor.when(Or)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.condition,scope)
+        con2Type = self.visit(node.conditional_expression,scope)
+        if con1Type.name != 'Boolean':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Boolean'))
+        if con2Type.name != 'Boolean':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Boolean'))   
+        if  con1Type.name != 'Boolean' or con2Type.name != 'Boolean':
+            return ErrorType()
+        return con1Type
+    
+    @visitor.when(Is)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.condition,scope)
+        con2Type = self.visit(node.conditional_expression,scope)
+
+    @visitor.when(Equal)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+
+        eval1 = con1Type.name != 'Number' or con1Type.name != 'String'
+        eval2 = con2Type.name != 'Number' or con1Type.name != 'String'
+        if  eval1 :
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if  eval2 :
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  eval1 or eval2 :
+            return ErrorType()
+
+        return self.context.get_type('Boolean',self.errors)
+    
+
+    @visitor.when(NotEqual)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+
+        eval1 = con1Type.name != 'Number' or con1Type.name != 'String'
+        eval2 = con2Type.name != 'Number' or con1Type.name != 'String'
+        if  eval1 :
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if  eval2 :
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  eval1 or eval2 :
+            return ErrorType()
+
+        return self.context.get_type('Boolean',self.errors)
+    
+    @visitor.when(LessEqual)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+        if con1Type.name != 'Number':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if con2Type.name != 'Number':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  con1Type.name != 'Number' or con2Type.name != 'Number':
+            return ErrorType()
+        return con1Type
+
+    @visitor.when(GreaterEqual)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+        if con1Type.name != 'Number':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if con2Type.name != 'Number':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  con1Type.name != 'Number' or con2Type.name != 'Number':
+            return ErrorType()
+        return con1Type
+
+    @visitor.when(LessThan)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+        if con1Type.name != 'Number':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if con2Type.name != 'Number':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  con1Type.name != 'Number' or con2Type.name != 'Number':
+            return ErrorType()
+        return con1Type
+
+    @visitor.when(GreaterThan)
+    def visit(self,node,scope):
+        con1Type = self.visit(node.expr1,scope)
+        con2Type = self.visit(node.expr2,scope)
+        if con1Type.name != 'Number':
+            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+        if con2Type.name != 'Number':
+            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+        if  con1Type.name != 'Number' or con2Type.name != 'Number':
+            return ErrorType()
+        return con1Type
+
+    @visitor.when(TypeInstanciation)
+    def visit(self,node,scope):
+        return self.context.get_type(node.identifier,self.errors)
 
     @visitor.when(VarInit)
     def visit(self,node,scope):
         print('inicializando una variable')
         varType1 = self.visit(node.identifier,scope)
         varType2 = self.visit(node.expression,scope)
-
+        print(varType2) 
         print("************")
         print(varType1.name)
         print(node.identifier.type)

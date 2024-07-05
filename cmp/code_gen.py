@@ -32,8 +32,8 @@ REG_FLOAT_OUT = "f12"
 # const MIPS char value offset
 CHAR_OFFSET = 8
 
-SYSCALL_PRINT_INT = 0
-SYSCALL_PRINT_FLOAT = 1
+SYSCALL_PRINT_INT = 1
+SYSCALL_PRINT_FLOAT = 2
 SYSCALL_PRINT_STR = 4
 SYSCALL_EXIT = 10
 
@@ -342,8 +342,8 @@ class HulkMIPSGenerator:
     def visit(self, node: cil_h.AssignNode):
         reg = self.get_unused_register()
 
-        if node.type.name == "Number":
-            print(MIPSTranslator.op_li(node.source, reg))
+        if node.type.name in ("Number", "Boolean"):
+            print(MIPSTranslator.op_li(int(float(node.source)), reg))
         elif node.type.name == "String":
             print(node.source)
         else:
@@ -351,7 +351,7 @@ class HulkMIPSGenerator:
             print(MIPSTranslator.op_lw(REG_FRAME_POINTER, source_offset, reg))
 
         dest_offset = self.get_stack_offset(node.dest)
-        print(MIPSTranslator.op_sw(REG_FRAME_POINTER, dest_offset, reg))
+        print(MIPSTranslator.op_sw(reg, dest_offset, REG_FRAME_POINTER))
 
         self.clear_registers()
 
