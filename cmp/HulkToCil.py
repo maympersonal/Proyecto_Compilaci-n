@@ -542,8 +542,11 @@ class HulkToCilVisitor(HulkToCil):
             arg = self.define_internal_local()
             self.visit(node.argument, scope, arg)
             # print("ARGS: "+ str(arg))
-            # print(self.context.get_type(arg))
-            self.register_instruction(cil.PrintNode(arg))
+            # print("TIIIIPO: ", node.argument)
+            if node.argument.__class__.__name__ == 'Number':
+                self.register_instruction(cil.PrintNode(arg))
+            else:
+                self.register_instruction(cil.PrintStrNode(arg))
             return arg   
     @visitor.when(String)
     def visit(self, node: String, scope: Scope, return_var):

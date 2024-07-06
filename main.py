@@ -86,7 +86,7 @@ def hacer_lex(archivo, stop = False):
         hulk_to_cil = HulkToCilVisitor(builder.context)
         cil_ast = hulk_to_cil.visit(result, scope)
 
-        formatter = get_formatter()
+        # formatter = get_formatter()
         print(
             "-------------------"
 
