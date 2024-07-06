@@ -159,14 +159,11 @@ class TypeChecker:
 
 
         for declaration in node.program_decl_list:
-            print("******** AQUI **********")
-            print(declaration)
             self.visit(declaration, scope)
         return scope
 
     @visitor.when(BinaryBuildInFunction)
     def visit(self,node,scope):
-        print('Calculando el logaritmo')
         arg1Type = self.visit(node.argument1,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError(f'The type of the base is not Number')) 
@@ -178,7 +175,6 @@ class TypeChecker:
 
     @visitor.when(Add)
     def visit(self,node,scope):
-        print('Calculando la suma')
         arg1Type = self.visit(node.term,scope)
         print( arg1Type)
         if arg1Type.name != 'Number':
@@ -192,7 +188,6 @@ class TypeChecker:
 
     @visitor.when(Sub)
     def visit(self,node,scope):
-        print('Calculando la resta')
         arg1Type = self.visit(node.term,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError('The type of the right member is not Number')) 
@@ -204,7 +199,6 @@ class TypeChecker:
 
     @visitor.when(Mult)
     def visit(self,node,scope):
-        print('Calculando la multiplicación')
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError('The type of the right member is not Number')) 
@@ -216,8 +210,6 @@ class TypeChecker:
     
     @visitor.when(Div)
     def visit(self,node,scope):
-        
-        print('Calculando la división')
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError('The type of the right member is not Number')) 
@@ -229,8 +221,6 @@ class TypeChecker:
 
     @visitor.when(Mod)
     def visit(self,node,scope):
-        
-        print('Calculando el módulo')
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError('The type of the right member is not Number')) 
@@ -242,7 +232,6 @@ class TypeChecker:
 
     @visitor.when(Power)
     def visit(self,node,scope): 
-        print('Calculando una potencia')
         arg1Type = self.visit(node.factor,scope)
         if arg1Type.name != 'Number':
             self.errors.append(SemanticError('The type of the base is not Number')) 
@@ -254,10 +243,8 @@ class TypeChecker:
     
     @visitor.when(UnaryBuildInFunction)
     def visit(self,node,scope):
-        print('Printeando un valor')
-        print('0000000000000000000'+str(node.argument))
+        print(node)
         argType = self.visit(node.argument,scope)
-        print('0000000000000000000'+str(node))
         if node.func =='print':
             if argType.name == 'Number' or argType.name == 'String' or argType.name == 'Boolean' :
                 return Type('Void')
@@ -269,13 +256,8 @@ class TypeChecker:
 
     @visitor.when(NoParamBuildInFunction)
     def visit(self,node,scope):
-        print('Obteniendo un valor random')
         return Type('Number')
 
-    @visitor.when(BuildInConst)
-    def visit(self,node,scope):
-        print('Obteniendo una constante')
-        return Type('Number')
 
     @visitor.when(FunctionCall)
     def visit(self,node,scope):
@@ -301,12 +283,24 @@ class TypeChecker:
 
     @visitor.when(Scope)
     def visit(self,node,scope):
-        child = scope.create_child()
+        for i in (0,len(node.statements)-1):
+            self.visit(node.statements[i],scope)
+        return self.visit(node.statements[len(node.statements)],scope)
 
-        for st in node.statements:
-            result = self.visit(st,child)
-        return result
-    
+    @visitor.when(VarDeclaration)#comprobar
+    def visit(self,node,scope):
+        for var in node.var_init_list:
+            expType = self.visit(var.expression,scope)
+            if var.type_downcast ==None:
+                scope.define_variable(var.identifier,expType)
+            else:
+                downcast = self.context.get_type(var.type_downcast)
+                if expType.conforms_to(downcast):
+                    scope.define_variable(var.identifier,downcast)
+                else:
+                    self.errors.append(f'The param "{var.identifier}" can not downcast as "{downcast.name}"')
+                    scope.define_variable(var.identifier,ErrorType(downcast.name))
+        return self.visit(node.body)
 
     @visitor.when(ForLoop)#comprobar
     def visit(self,node,scope):
@@ -314,135 +308,7 @@ class TypeChecker:
         child = scope.create_child()
         child.define_variable(node.identifier,varType)
         return self.visit(node.body)
-   
-    @visitor.when(VarDeclaration)
-    def visit(self,node,scope):
-        child = scope.create_child()
-        for var in node.var_init_list:
-            self.visit(var,child)
-        return self.visit(node.body,child)
 
-    @visitor.when(Not)
-    def visit(self,node,scope):
-        conType = self.visit(node.condition,scope)
-        if conType.name == 'Boolean':
-            return conType
-        else:
-            scope.errors.append(SemanticError('The type in not Boolean'))
-            return ErrorType()
-    
-    @visitor.when(Equal)
-    def visit(self,node,scope):
-        con1Type = self.visit(node.condition,scope)
-        con2Type = self.visit(node.condition,scope)
-        if conType.name == 'Boolean':
-            return conType
-        else:
-            scope.errors.append(SemanticError('The type in not Boolean'))
-            return ErrorType()
-
-    @visitor.when(VarInit)
-    def visit(self,node,scope):
-        print('inicializando una variable')
-        varType1 = self.visit(node.identifier,scope)
-        varType2 = self.visit(node.expression,scope)
-
-        print("************")
-        print(varType1.name)
-        print(node.identifier.type)
-        
-        print("tipo de 2:" + str(varType2))
-        # print(node.type_downcast)
-        # print(node)
-        # print("************")
-        if node.type_downcast == None:
-            if (varType1.name == "Object"):
-                node.type_downcast = self.context.get_type(varType2.name,self.errors)
-                print(node.identifier.identifier)   
-                var = scope.find_variable(node.identifier.identifier)
-                var.type = self.context.get_type(varType2.name,self.errors)
-                print(f'"*********{var.name}" ----"{var.type}"')
-                return varType2
-            elif (varType2.conforms_to(varType1)):
-                node.type_downcast = self.context.get_type(varType2.name,self.errors)
-                return varType1
-            else: 
-                self.errors(f'The value\'s type in not "{varType1.name}" ')
-                return ErrorType()
-
-        elif not(varType2.conforms_to(self.context.get_type(node.type_downcast,self.errors))):
-            self.errors(f'The value\'s type in not "{node.type_downcast}" ')
-            return ErrorType()
-        else:
-            var = scope.find_variable(node.identifier.identifier)
-            node.type_downcast = self.context.get_type(node.type_downcast,self.errors)
-            var.type = node.type_downcast
-            return node.type_downcast
-
-        '''if node.type_downcast == None:
-            node.identifier.type = varType
-            #node.identifier.type = node.expression
-            node.type_downcast = varType
-            var = scope.define_variable(node.identifier.identifier,varType)
-            print(f'"{var.name}" ----"{var.type}"')
-            for a in scope.locals:
-                print("****" + a.name)
-        elif not(varType.conforms_to(node.type_downcast)):
-            self.errors.append(f'The type of the value of the parameter "{node.identifier.identifier}" is not "{node.type_downcast}"')
-            newType = ErrorType()
-            scope.define_variable(node.identifier.identifier,newType)
-            return newType
-        node.type_downcast = varType
-        scope.define_variable(node.identifier.identifier,node.type_downcast)
-        return node.type_downcast'''
-
-    @visitor.when(VarUse)
-    def visit(self,node,scope):
-        print("***** VARUSE ******")
-        print(node.identifier)
-        # print(node.type)
-        print("*****Buscando variables ******")
-        for vari in scope.parent.locals:
-            print("padre: " + vari.name)
-        for vari in scope.locals:
-            print("hijo: " +vari.name)
-        print("******************************")
-        var = scope.find_variable(node.identifier)
-        
-        if var != None:
-            print("encontrada: " + var.name)
-        if var == None:
-            node.type = self.context.get_type("Object",self.errors)
-            scope.define_variable(node.identifier, node.type)
-            print("agregada: " + node.identifier)
-            return node.type
-            '''self.errors.append(f'The variable "{node.identifier}" is not defined')
-            return ErrorType()'''
-        else:    
-            node.type = var.type
-            return var.type  
-
-    @visitor.when(Concat)
-    def visit(self,node,scope):
-        arg1Type = self.visit(node.atom,scope)
-        arg2Type = self.visit(node.expression,scope)
-
-
-        print("****** CONCAT *******")
-        print(arg1Type)
-        print(arg2Type)
-
-        if (arg1Type.name == 'Number' or  arg1Type.name == 'String')  and not(arg2Type.name == 'Number' or  arg2Type.name == 'String'):
-                self.errors.append(SemanticError('The type second parameter in not string or number'))
-                return ErrorType()
-        elif arg1Type.name == 'Number'  and not(arg2Type.name == 'String') :
-                self.errors.append(SemanticError('You can not concat two numbers'))
-                return ErrorType()
-        elif not(arg1Type.name == 'Number' or  arg1Type.name == 'String') and  (arg2Type.name == 'Number' or  arg2Type.name == 'String') : 
-                self.errors.append(SemanticError('The type first parameter in not string or number'))
-                return ErrorType()
-        else:
-            return self.context.get_type('String',self.errors)
     # @visitor.when(WhileLoop)#comprobar
     # def visit(self,node,scope):
     #     child = scope.create_child()
@@ -454,24 +320,17 @@ class TypeChecker:
 
     @visitor.when(Number)
     def visit(self,node,scope):
-        node.type_downcast = self.context.get_type('Number',self.errors)
-        return node.type_downcast
+        return Type('Number'),node.value
+
     @visitor.when(String)
     def visit(self,node,scope):
-        print('La variable es un string')
-        node.type_downcast = self.context.get_type('String',self.errors)
-        return node.type_downcast
+        return Type('String'),node.value
 
     @visitor.when(Boolean)
     def visit(self,node,scope):
-        print('La variable es un booleano')
-        node.type_downcast = self.context.get_type('Boolean',self.errors)
-        return node.type_downcast
+        return Type('Boolean')
 
 
   #Herramientas
     def Method_Validation(method,visitor):
         Scope
-
-
-
