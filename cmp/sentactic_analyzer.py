@@ -16,14 +16,26 @@ class TypeCollector(object):
     @visitor.when(Program)
     def visit(self,node):
         self.context = Context()
-        self.context.create_type("Object")
-        self.context.create_type("Void")
-        self.context.create_type("Number")
-        self.context.create_type("Boolean")
-        self.context.create_type("String")
+        object_type = self.context.create_type("Object")
+        void_type = self.context.create_type("Void")
+        number_type = self.context.create_type("Number")
+        boolean_type = self.context.create_type("Boolean")
+        string_type = self.context.create_type("String")
+        self_type = self.context.create_type("Self")
+        
+        # métodos de los tipos
+        # object
+        object_type.define_method(Method('abort',[],[],object_type,[]))
+        object_type.define_method(Method('copy',[],[],self_type,[]))
+        object_type.define_method(Method('type_name',[],[],string_type,[]))
+        # string
+        string_type.define_method(Method('length',[],[],number_type,[]))
+        string_type.define_method(Method('concat',["other"],[string_type],string_type,[]))
+        string_type.define_method(Method('substr',["from","to"],[number_type,number_type],string_type,[]))
+        
+        # fin métodos
                 
         # jerarquia de tipos 
-        object_type = self.context.get_type("Object",self.errors)
         for typex in self.context.types.values():
             if typex != object_type:
                 typex.set_parent(object_type)

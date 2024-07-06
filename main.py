@@ -83,17 +83,17 @@ def hacer_lex(archivo, stop = False):
         # print(archivo)
         
         
-        # hulk_to_cil = HulkToCilVisitor(builder.context)
-        # cil_ast = hulk_to_cil.visit(result, scope)
+        hulk_to_cil = HulkToCilVisitor(builder.context)
+        cil_ast = hulk_to_cil.visit(result, scope)
 
-        # formatter = get_formatter()
-        # print(
-        #     "-------------------"
+        formatter = get_formatter()
+        print(
+            "-------------------"
 
-        # )
-        # print() 
-        # print("CCCCCIIILLLLLLL")
-        # print("-------------------")
+        )
+        print() 
+        print("CCCCCIIILLLLLLL")
+        print("-------------------")
         # print(formatter(cil_ast))
         if stop:
             input()
