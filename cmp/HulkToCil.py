@@ -432,17 +432,18 @@ class HulkToCilVisitor(HulkToCil):
         
         self.register_instruction(cil.ExitNode())
         
-        # self.current_type = self.context.get_type(node)
+        # self.current_type = self.context.get_type_cl(node)
+        # print("AQUIIIIIIIIII ", self.current_type)
         
         self.current_function = None
-        self.current_type = cil.TypeNode('Main')
+        # self.current_type = cil.TypeNode('Main')
         
-        self.register_object_functions()
+        # self.register_object_functions()
         self.add_builtin_functions()
         self.add_builtin_entry()
         
-        print('!!!!!!!!!!!!!!AQUIIII DOTTYPES ---------')
-        print(program_node.dottypes)
+        # print('!!!!!!!!!!!!!!AQUIIII DOTTYPES ---------')
+        # print(program_node.dottypes)
         
         # en hulk tambien hay que visitar en el atributo y tirar expresion de asignacion
         
