@@ -16,13 +16,22 @@ class TypeCollector(object):
     @visitor.when(Program)
     def visit(self,node):
         self.context = Context()
-        for declaration in node.program_decl_list:
-            self.visit(declaration)
         self.context.create_type("Object")
         self.context.create_type("Void")
         self.context.create_type("Number")
         self.context.create_type("Boolean")
         self.context.create_type("String")
+                
+        # jerarquia de tipos 
+        object_type = self.context.get_type("Object",self.errors)
+        for typex in self.context.types.values():
+            if typex != object_type:
+                typex.set_parent(object_type)
+        # fin jerarquia de tipos
+        
+        for declaration in node.program_decl_list:
+            self.visit(declaration)
+            
         return self.context  
 
     @visitor.when(TypeDeclaration)
