@@ -168,13 +168,7 @@ class Context:
             return self.types[name]
         except KeyError:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))
-            return ErrorType(name)
-    
-    def get_type_cl(self, name:str):
-        try:
-            return self.types[name]
-        except KeyError:
-            raise SemanticError(f'Type "{name}" is not defined.')
+            return ErrorType()
 
     def get_types(self, names:list,errors):
         return [self.get_type(name,errors) for name in names]
@@ -208,17 +202,20 @@ class Context:
         return None
 
     def __str__(self):# modificar
-        return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
+        return '{\n\t' + '\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
 
     def __repr__(self):
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype, data=None):
+    def __init__(self, name, vtype):
         self.name = name
         self.type = vtype
-        self.data = data
 
+# class VectorType(Type):
+#     def __init__(self, name:str,elements_Type : Type):
+#         super.__init__(name)
+#         self.elements_Type = elements_Type
 class SemanticScope:
     def __init__(self, parent=None):
         self.locals = []
@@ -244,7 +241,18 @@ class SemanticScope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            print("*******************StopIteration************************")
+            return self.parent.find_variable(vname, self.index) if self.parent != None else None
+
+    # def find_variable_childeren(self, vname):
+    #     try:
+    #         return next(x for x in self.locals if x.name == vname)
+    #     except StopIteration:
+    #         for child in self.children:
+    #             var = child.find_variable_childeren(vname)
+    #             if not(var == None):
+    #                 return var
+    #         return None
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
