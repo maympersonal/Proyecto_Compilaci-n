@@ -63,7 +63,7 @@ def hacer_lex(archivo, stop = False):
         builder = TypeBuilder(collector.context, collector.errors)
         builder.visit(result)
         print(builder)
-        print(builder.errors)
+        print(builder.errors)   
 
 
         checker = TypeChecker(builder.context,builder.errors)

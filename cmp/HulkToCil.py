@@ -42,13 +42,16 @@ class HulkToCil:
     def get_local(self, name):
         return f'local_{name}'
     
-    def register_local(self, name=None):
-        local_name = (
-            f"local_{name}" if name else f"local_{len(self.current_function.localvars)}"
-        )
-        local_node = cil.LocalNode(local_name)
-        self.current_function.localvars.append(local_node)
-        return local_name
+    def register_local(self, vinfo: VariableInfo = None):
+        if vinfo is not None and vinfo.name:
+            vinfo.name = f'local_{vinfo.name}'
+        else:
+            name = f'local_{len(self.current_function.localvars)}'
+            vinfo = VariableInfo(name, None)
+            
+        local_node = cil.LocalNode(vinfo.name)
+        self.localvars.append(local_node)
+        return vinfo.name
 
     def define_internal_local(self):
         return self.register_local()
@@ -113,24 +116,24 @@ class HulkToCil:
     def is_attribute(self, vname):
         return vname not in [p.name for p in self.params] + [l.name for l in self.localvars]
     
-    def add_builtin_main(self):
+    def add_builtin_entry(self):
         builtin_types = ["Object", "Number", "String", "Boolean"]
         for typex in builtin_types:
-            self.current_function = cil.FunctionNode(self.to_function_name('main', typex), [], [], [])
+            self.current_function = cil.FunctionNode(self.to_function_name('entry', typex), [], [], [])
             self.params.append(cil.ParamNode('self'))
             self.register_instruction(cil.ReturnNode('self'))
             self.dotcode.append(self.current_function)
     
-    def build_main(self, node: TypeDeclaration):
-        self.current_function = self.register_function(self.to_function_name('main', node.identifier))
+    def build_entry(self, node: TypeDeclaration):
+        self.current_function = self.register_function(self.to_function_name('entry', node.identifier))
         
         self.params.append(cil.ParamNode('self'))
-        self.current_type.define_method('main', [], [], 'Object')
+        self.current_type.define_method('entry', [], [], 'Object')
         
         for attr, (_, attr_type) in self.attrs[self.current_type.name].items():
             instance = self.define_internal_local()
             self.register_instruction(cil.ArgNode('self'))
-            self.register_instruction(cil.StaticCallNode(self.to_function_name(f'{attr}_main', attr_type), instance))
+            self.register_instruction(cil.StaticCallNode(self.to_function_name(f'{attr}_entry', attr_type), instance))
             self.register_instruction(cil.SetAttribNode('self', self.to_attr_name(node.identifier,attr), instance, node.identifier))
 
         self.register_instruction(cil.ReturnNode('self'))
@@ -139,11 +142,11 @@ class HulkToCil:
     # OBJECT
     
     def object_abort(self,type):
-        self.data.append(
+        self.dotdata.append(
             cil.DataNode(f"abort_{type}", f"Abort called from class {type}\n")
         )
         error = f"abort_{type}"
-        self.register_instruction(cil.RuntimeErrorNode(error))
+        self.register_instruction(cil.RunTimeErrorNode(error))
     
     def object_copy(self):
         self.params.append(cil.ParamNode('self'))
@@ -272,7 +275,8 @@ class HulkToCil:
     
     def cil_abstract_method(self, mname, cname, specif_code):
         
-        self.current_type = self.context.get_type(cname)
+        self.current_type = self.context.get_type(cname, [])
+        print("TYYYYYYYYYPE: ", self.current_type)
         self.current_method = self.current_type.get_method(mname)
         self.current_function = cil.FunctionNode(
             self.to_function_name(mname, cname), [], [], []
@@ -348,6 +352,8 @@ class HulkToCil:
         
         for t in [object_type, string_type, int_type, bool_type]:
             self.dottypes.append(t)
+        
+        
     
     def register_abort(self):
         self.current_function = cil.FunctionNode(self.to_function_name('abort', self.current_type.name), [], [], [])
@@ -371,7 +377,17 @@ class HulkToCil:
         self.register_abort()
         self.register_copy()
         self.register_type_name()
-        
+    
+    def reset_state(self):
+        self.dottypes = []
+        self.dotdata = []
+        self.dotcode = []
+        self.current_type = None
+        self.current_method = None
+        self.string_count = 0
+        self.current_function = None
+        self._count = 0
+        self.context = None
         
     
 
@@ -381,119 +397,98 @@ class HulkToCilVisitor(HulkToCil):
         pass
 
     @visitor.when(Program)
-    def visit (self, node: Program, scope):
-        for type in self.context.types.values():
-            self.attrs[type.name] = {
-                attr.name: (i, htype.name)
-                for i, (attr, htype) in enumerate(type.all_attributes())
-            }
-            self.methods[type.name] = {
-                method.name: (i, htype.name)
-                if htype.name != "Object" or method.name not in ["abort","type_name", "copy"]
-                else (i, type.name)
-                for i, (method, htype) in enumerate(type.all_methods())
-            }
-        self.current_function = cil.FunctionNode("main", [], [], [])
-        self.dotcode.append(self.current_function)
-
+    def visit (self, node: Program, scope: Scope, return_var= None):
+        self.dotdata.append(cil.DataNode('pi', math.pi))
         
+        # self.current_function = self.register_function('main')
+        # self.current_vars: Dict[str, VariableInfo] = {}
+        # # ?arriba así ?
+        # # instance = self.define_internal_local()
+        # # result = self.define_internal_local()
+        
+        # # main_method_name = self.to_function_name('main', 'Main')
+        
+        # # self.register_instruction(cil.AllocateNode('Main', instance))
+        # # self.register_instruction(cil.ArgNode(instance))
+        # # self.register_instruction(cil.StaticCallNode(main_method_name, result))
+        # # self.register_instruction(cil.ReturnNode(0))
+        # # self.current_function = self.register_function('main') #? dudoso esto
+        # # self.current_type = self.context.get_type('Global')
 
-        main_constructor = self.to_function_name("constructor", "Main")
-        main_method_name = self.to_function_name("main", "Main")
-
-        # Get instance from constructor
+        # for decl in node.program_decl_list:
+        #     self.visit(decl, scope)
+        # return cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
+        for tp in self.context.types.values():
+            self.attrs[tp.name] = {
+                attr.name: (i, htype.name) for i, (attr, htype) in enumerate(tp.all_attributes())
+            }
+            self.methods[tp.name] = {
+                method.name: (i, htype.name) if htype.name != 'object' or method.name not in ["abort","type_name", "copy"]
+                else (i, tp.name) for i, (method, htype) in enumerate(tp.all_methods())
+            }
+        self.current_function = cil.FunctionNode('main', [], [], [])
+        self.dotcode.append(self.current_function)
+        
+        main_entry = self.to_function_name('entry', 'Main')
+        main_meth_name = self.to_function_name('main', 'Main')
+        
+        # instance for entry
         a = self.define_internal_local()
-        self.register_instruction(cil.AllocateNode("Main", a))
+        self.register_instruction(cil.AllocateNode('Main', a))
         self.register_instruction(cil.ArgNode(a))
-        instance= self.define_internal_local()
-        self.register_instruction(cil.StaticCallNode(main_constructor, instance))
-
-        # Pass instance as parameter and call Main_main
+        instance = self.define_internal_local()
+        self.register_instruction(cil.StaticCallNode(main_entry, instance))
+        
         result = self.define_internal_local()
         self.register_instruction(cil.ArgNode(instance))
-        self.register_instruction(cil.StaticCallNode(main_method_name, result))
-
-        # self.register_instruction(ReturnNode(0))
+        self.register_instruction(cil.StaticCallNode(main_meth_name, result))
+        
         self.register_instruction(cil.ExitNode())
-
+        
+        # self.current_type = self.context.get_type_cl(node)
+        # print("AQUIIIIIIIIII ", self.current_type)
+        
         self.current_function = None
-
-        # self.add_builtin_functions()
-        # self.add_builtin_constructors()
-
-        for declaration in node.program_decl_list:
-            self.visit(declaration, scope)
-
+        # self.current_type = cil.TypeNode('Main')
+        
+        # self.register_object_functions()
+        self.add_builtin_functions()
+        self.add_builtin_entry()
+        
+        # print('!!!!!!!!!!!!!!AQUIIII DOTTYPES ---------')
+        # print(program_node.dottypes)
+        
+        # en hulk tambien hay que visitar en el atributo y tirar expresion de asignacion
+        
+        for decl in node.program_decl_list:
+            self.visit(decl, scope)
+        
         program_node = cil.ProgramNode(self.dottypes, self.dotdata, self.dotcode)
-
         self.reset_state()
-
         return program_node
     
-    @visitor.when(FunctionDeclaration)
-    def visit(self, node: FunctionDeclaration, scope):
-        last_func = self.current_function
-        # self.current_method = self.current_type.get_method(node.identifier)
-
-        self.current_function = self.register_function(node.identifier)
-
-        # self.current_function.params.append()
-        print(node.parameters)
-        for pname in node.parameters:
-            self.register_param(VariableInfo(pname.identifier, "Object"))
-
-        value = self.define_internal_local()
-        self.visit(node.body, scope)#value, scope)
-
-        # print(self.current_method)
-        # if isinstance(self.current_method)
-            # value = None
-
-        # self.register_instruction() return
-
-        self.current_function = last_func
-        # self.current_method = None
-
-    # Function body
-    @visitor.when(Scope)
-    def visit(self, node: Scope, return_var):
-        for expr in node.statements:
-            self.visit(expr, return_var)
-    
     @visitor.when(VarInit)
-    def visit(self, node: VarInit, scope: Scope):
-        # # var_type = node.expression.type_downcast if node.identifier.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
-        # var_type = node.expression.type_downcast
-        # var_name = node.identifier.identifier
-        # # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        # print(node.expression)
-        # var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
-        # self.current_vars[node.identifier] = var
-        # value = self.visit(node.expression, scope)
-        # self.register_instruction(cil.AssignNode(var, value, var_type))
-        # return var
-
-         # Add LOCAL variable
-        idx = self.get_local(node.id)
-        if not any(idx == l.name for l in self.current_function.localvars):
-            self.register_local(node.id)
-
-        # Add Assignment Node
-        if node.expr:
-            self.visit(node.expr, idx)
-        else:
-            self.register_instruction(cil.ValueNode(idx, node.type))
+    def visit(self, node: VarInit, scope: Scope, return_var= None):
+        var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
+        # var_type = node.expression
+        # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
+        print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
+        print(node.expression)
+        var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
+        self.current_vars[node.identifier] = var
+        value = self.visit(node.expression, scope)
+        self.register_instruction(cil.AssignNode(var, value))
+        return var
     
     @visitor.when(VarDeclaration)
-    def visit(self, node: VarDeclaration, scope: Scope):
+    def visit(self, node: VarDeclaration, scope: Scope, return_var= None):
         new_scope = Scope(scope)
         for var_init in node.var_init_list:
             self.visit(var_init, new_scope)
         return self.visit(node.body, new_scope)
     
     @visitor.when(VarUse)
-    def visit(self, node: VarUse, scope: Scope):
+    def visit(self, node: VarUse, scope: Scope, return_var= None):
         # print('!!!!!!!!!!!!!!AQUIIII')
         # print(self.current_vars[node.identifier]+ "aaaa ??")
         # return self.current_vars[node.identifier]
@@ -522,7 +517,7 @@ class HulkToCilVisitor(HulkToCil):
         )
 
     @visitor.when(Add)
-    def visit(self, node: VarUse, scope: Scope):
+    def visit(self, node: VarUse, scope: Scope, return_var= None):
         # self.current_function = self.register_function("add_function")
         left = self.visit(node.term, scope)
         right = self.visit(node.aritmetic_operation, scope)
@@ -531,7 +526,7 @@ class HulkToCilVisitor(HulkToCil):
         return var
     
     @visitor.when(Sub)
-    def visit(self, node: Sub, scope: Scope):
+    def visit(self, node: Sub, scope: Scope, return_var= None):
         # self.current_function = self.register_function("sub_function")
         left = self.visit(node.term, scope)
         right = self.visit(node.aritmetic_operation, scope)
@@ -540,7 +535,7 @@ class HulkToCilVisitor(HulkToCil):
         return var
     
     @visitor.when(Mult)
-    def visit(self, node: Mult, scope: Scope):
+    def visit(self, node: Mult, scope: Scope, return_var= None):
         # self.current_function = self.register_function("mult_function")
         left = self.visit(node.factor, scope)
         right = self.visit(node.term, scope)
@@ -549,7 +544,7 @@ class HulkToCilVisitor(HulkToCil):
         return var
     
     @visitor.when(Div)
-    def visit(self, node: Div, scope: Scope):
+    def visit(self, node: Div, scope: Scope, return_var= None):
         # self.current_function = self.register_function("div_function")
         left = self.visit(node.factor, scope)
         right = self.visit(node.term, scope)
@@ -558,17 +553,17 @@ class HulkToCilVisitor(HulkToCil):
         return var
     
     @visitor.when(Number)
-    def visit(self, node: Number, scope: Scope):
+    def visit(self, node: Number, scope: Scope, return_var= None):
         # self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Atom)
-    def visit(self, node: Atom, scope: Scope):
+    def visit(self, node: Atom, scope: Scope, return_var= None):
         # self.register_instruction(cil.ValueNode(node.value))
         return node.value
     
     @visitor.when(Power)
-    def visit(self, node: Power, scope: Scope):
+    def visit(self, node: Power, scope: Scope, return_var= None):
         # self.current_function = self.register_function("pow_function")
         base = self.visit(node.base_exponent, scope)
         exp = self.visit(node.factor, scope)
@@ -577,33 +572,20 @@ class HulkToCilVisitor(HulkToCil):
         return var
     
     @visitor.when(UnaryBuildInFunction)
-    def visit(self, node: UnaryBuildInFunction, scope: Scope):
-        arg = self.visit(node.argument, scope)
-        if node.func == 'sen':
-            var = self.define_internal_local()
-            self.register_instruction(cil.SenNode(var, arg))
-            return var
-        elif node.func == 'cos':
-            var = self.define_internal_local()
-            self.register_instruction(cil.CosNode(var, arg))
-            return var
-        elif node.func == 'tan':
-            var = self.define_internal_local()
-            self.register_instruction(cil.TanNode(var, arg))
-            return var
-        elif node.func == 'str':
-            var = self.define_internal_local()
-            self.register_instruction(cil.ToStrNode(var, arg))
-            return var
-        elif node.func == 'print':
+    def visit(self, node: UnaryBuildInFunction, scope: Scope, return_var= None):
+        # arg = self.visit(node.argument, scope, return_var)
+        if node.func == 'print':
+            arg = self.define_internal_local()
+            self.visit(node.argument, scope, arg)
             # print("ARGS: "+ str(arg))
             # print(self.context.get_type(arg))
             self.register_instruction(cil.PrintNode(arg))
             return arg   
     @visitor.when(String)
-    def visit(self, node: String, scope: Scope):
-        # print("STRING: "+node.value)
-        return node.value    
+    def visit(self, node: String, scope: Scope, return_var):
+        idx = self.generate_next_string_id()
+        self.dotdata.append(cil.DataNode(idx, node.value))
+        self.register_instruction(cil.LoadNode(return_var, VariableInfo(idx, None, node.value))) 
     
     # @visitor.when(TypeDeclaration)
         
