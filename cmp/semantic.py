@@ -169,6 +169,12 @@ class Context:
         except KeyError:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))
             return ErrorType(name)
+    
+    def get_type_cl(self, name:str):
+        try:
+            return self.types[name]
+        except KeyError:
+            raise SemanticError(f'Type "{name}" is not defined.')
 
     def get_types(self, names:list,errors):
         return [self.get_type(name,errors) for name in names]
