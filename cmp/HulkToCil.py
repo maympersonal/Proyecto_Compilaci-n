@@ -276,7 +276,7 @@ class HulkToCil:
     def cil_abstract_method(self, mname, cname, specif_code):
         
         self.current_type = self.context.get_type(cname, [])
-        print("TYYYYYYYYYPE: ", self.current_type)
+        # print("TYYYYYYYYYPE: ", self.current_type)
         self.current_method = self.current_type.get_method(mname)
         self.current_function = cil.FunctionNode(
             self.to_function_name(mname, cname), [], [], []
@@ -287,7 +287,7 @@ class HulkToCil:
         else:
             specif_code()
 
-        self.code.append(self.current_function)
+        self.dotcode.append(self.current_function)
         self.current_function = None
         self.current_type = None
 
@@ -330,12 +330,12 @@ class HulkToCil:
             self.cil_abstract_method("copy", "Number", self.object_copy),
             self.cil_abstract_method("type_name", "Number", self.object_type_name),
             #?  builtin math functions
-            self.cil_abstract_method("sqrt", "Number", self.number_sqrt),
-            self.cil_abstract_method("sin", "Number", self.number_sin),
-            self.cil_abstract_method("cos", "Number", self.number_cos),
-            self.cil_abstract_method("tan", "Number", self.number_tan),
-            self.cil_abstract_method("exp", "Number", self.number_exp),
-            self.cil_abstract_method("log", "Number", self.number_log),
+            # self.cil_abstract_method("sqrt", "Number", self.number_sqrt),
+            # self.cil_abstract_method("sin", "Number", self.number_sin),
+            # self.cil_abstract_method("cos", "Number", self.number_cos),
+            # self.cil_abstract_method("tan", "Number", self.number_tan),
+            # self.cil_abstract_method("exp", "Number", self.number_exp),
+            # self.cil_abstract_method("log", "Number", self.number_log),
             #? random 
         ]
         
@@ -578,8 +578,11 @@ class HulkToCilVisitor(HulkToCil):
             arg = self.define_internal_local()
             self.visit(node.argument, scope, arg)
             # print("ARGS: "+ str(arg))
-            # print(self.context.get_type(arg))
-            self.register_instruction(cil.PrintNode(arg))
+            # print("TIIIIPO: ", node.argument)
+            if node.argument.__class__.__name__ == 'Number':
+                self.register_instruction(cil.PrintNode(arg))
+            else:
+                self.register_instruction(cil.PrintStrNode(arg))
             return arg   
     @visitor.when(String)
     def visit(self, node: String, scope: Scope, return_var):

@@ -58,7 +58,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, attr):#comprobar
+    def define_attribute(self, attr):
         try:
             print(attr)
             self.get_attribute(attr.name)
@@ -79,7 +79,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
    
-    def define_method(self,newMethod):#comprobar
+    def define_method(self,newMethod):
         if newMethod.name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
         self.methods.append(newMethod)
@@ -132,30 +132,10 @@ class ErrorType(Type):
     def __eq__(self, other):
         return isinstance(other, Type)
 
-class VoidType(Type):
-    def __init__(self):
-        Type.__init__(self, '<void>')
-
-    def conforms_to(self, other):
-        raise Exception('Invalid type: void type.')
-
-    def bypass(self):
-        return True
-
-    def __eq__(self, other):
-        return isinstance(other, VoidType)
-
-class IntType(Type):
-    def __init__(self):
-        Type.__init__(self, 'int')
-
-    def __eq__(self, other):
-        return other.name == self.name or isinstance(other, IntType)
-
 class Context:
     def __init__(self):
         self.types = {}
-        self.methods = {}#agregado
+        self.methods = {}
 
     def create_type(self, name:str):
         if name in self.types:
@@ -171,22 +151,34 @@ class Context:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))
             return ErrorType()
 
+    def get_type_cil(self, name:str):
+
+        try:
+
+            return self.types[name]
+
+        except KeyError:
+
+            print(SemanticError(f'Type "{name}" is not defined.'))
+
+            return ErrorType()
+
     def get_types(self, names:list,errors):
         return [self.get_type(name,errors) for name in names]
        
     def create_method(self, newMethod):#agregado
         try:
-            key = Obtain_Key(newMethod.param_types)
-            self.methods[newMethod.name,key]
+            self.methods[newMethod.name]
             raise SemanticError(f'The Method ({newMethod.name}) is already in context with those parameters.')#ver
         except KeyError:
-            self.methods[newMethod.name,key] = newMethod
+            self.methods[newMethod.name] = newMethod
             return newMethod
 
     def get_method(self, name:str, param_types:list):
         try:
             return self.methods[name,param_types]
         except KeyError:
+            print((f'Method "{name}" is not defined.'))
             raise SemanticError(f'Method "{name}" is not defined.')
 
     def semantic_get_method(self, name:str, param_types:list):
@@ -209,10 +201,10 @@ class Context:
         return str(self)
 
 class VariableInfo:
-    def __init__(self, name, vtype):
+    def __init__(self, name, vtype=None, data=None):
         self.name = name
         self.type = vtype
-
+        self.data = data
 # class VectorType(Type):
 #     def __init__(self, name:str,elements_Type : Type):
 #         super.__init__(name)

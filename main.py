@@ -93,8 +93,8 @@ def hacer_lex(archivo, stop = False):
         # print()
         # print(result)
         # print(archivo)
-        # if stop:
-        #     input()
+        if stop:
+            input()
          
 def todos():
     # Obtener la ruta de la carpeta actual
