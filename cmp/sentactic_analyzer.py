@@ -46,6 +46,8 @@ class TypeCollector(object):
         
         for declaration in node.program_decl_list:
             self.visit(declaration)
+            
+        # self.context.create_type("Main")
         
         return self.context  
 
