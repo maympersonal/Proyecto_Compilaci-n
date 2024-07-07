@@ -44,7 +44,7 @@ def hacer_lex(archivo, stop = False):
 
         #input()
         print()
-        result = parser.parse(lexer.tokenize(contenido))
+        result = parser.parse(tokens)
         
         v = viewer.visit(result)
         print()
@@ -87,7 +87,7 @@ def hacer_lex(archivo, stop = False):
 
         code_gen.visit(cil_ast)
 
-        v = viewer.visit(result)
+        # v = viewer.visit(result)
         # print()
         # print("AST = " + v)
         # print()
