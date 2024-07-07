@@ -51,6 +51,8 @@ class TypeCollector(object):
         
         return self.context  
 
+        
+
     @visitor.when(TypeDeclaration)
     def visit(self, node):
         try :
@@ -84,10 +86,13 @@ class TypeBuilder:
     @visitor.when(TypeDeclaration)
     def visit(self,node):#ver la parte de herencia
         try:
-            type_node = self.context.get_type(node.identifier,self.errors)#ver
-            type_node.set_parent(self.context.get_type("Object" if node.inherits_type == None else node.inherits_type ,self.errors))
+            type_node = self.context.get_type(node.identifier,self.errors)
+            print("*********TypeDeclaration****************")
+            print(node.inherits_type)
+            type_node.set_parent(self.context.get_type("Object" if node.inherits_type == None else node.inherits_type.identifier ,self.errors))
+            print(node.inherits_type)
             for decl in node.decl_body.statements:
-                if decl is TypeMethodDeclaration:
+                if isinstance(decl,TypeMethodDeclaration):
                     type_node.define_method(self.visit(decl))    
                 else:
                     type_node.define_attribute(self.visit(decl))
@@ -120,10 +125,11 @@ class TypeBuilder:
                 param.type = self.context.get_type("Object" if param.type == None else param.type,self.errors)
                 param_names.append(param.identifier)
                 param_types.append(param.type)
+            print("******* type_anotatio ********")
+            print(node.type_anotation)
+            return_type = self.context.get_type("Object" if node.type_anotation == None else node.type_anotation,self.errors)
 
-            return_type = self.context.get_type("Object" if node.type_anotation != None else node.type_anotation,self.errors)
-
-            return Method(node.identifier, param_names,param_types,return_type , node.body)
+            return Method(node.identifier, param_names,param_types, return_type , node.body)
         except SemanticError as e:
             self.errors.append(e)    
 
@@ -131,49 +137,78 @@ class TypeBuilder:
     def visit(self,node):#ver
         try:
             print("++++ FunctionDeclaration ******")
+            print("++++ type_anotation ******")
+            print( node.type_anotation)
             node.type_anotation = self.context.get_type("Object" if node.type_anotation == None else node.type_anotation,self.errors)
             
+            print("++++ Seeing params ******")
             param_names = []
             param_types = []
-            for param in node.parameters:
-                param.type = self.context.get_type("Object" if param.type == None else param.type,self.errors)
-                param_names.append(param.identifier)
-                param_types.append(param.type)
+            if node.parameters != None:
+                for param in node.parameters:
+                    print(f'++++ Seeing param {param.identifier} ******')
+                    print(param.identifier)
+                    print(param.type)
+                    param.type = self.context.get_type("Object" if param.type == None else param.type,self.errors)
+                    print("************DSVSDFVDFSVDFSVDSFVDF")
+                    print(param.type)
+                    param_names.append(param.identifier)
+                    param_types.append(param.type)
 
             #return_type = node.type_anotation
             print("++++ NODE BODY ******")
-            print(node.body)
-            self.visit(node.body)
-            return_type = self.context.get_type("Object" if node.type_anotation == None else node.type_anotation,self.errors)
-            self.context.create_method(Method(node.identifier, param_names,param_types,return_type, node.body))
+            print(node.identifier)
+            #self.visit(node.body)
+            self.context.create_method(Method(node.identifier, param_names,param_types,node.type_anotation, node.body))
+            print("hola,ta pasé por aquí")
         except SemanticError as e:
             self.errors.append(e)    
     
     @visitor.when(ProtocolDeclaration)
     def visit(self,node):#ver
+        # try:
+        #     type_node = self.context.get_type(node.name,self.errors)
+        #     node.extends = self.context.get_type("Object" if param.type == None else param.type,self.errors) 
+        #     type_node.set_parent(node.extends)
+        #     for decl in node.body:
+        #         type_node.define_method(self.visit(decl))
+                
+        # except SemanticError as e:
+        #     self.errors.append(e)    
         try:
-            type_node = self.context.get_type(node.name,self.errors)#ver
-            type_node.set_parent(self.context.get_type(node.extends,self.errors) if node.extends != None else self.context.get_type("Object"),self.errors)
+            type_node = self.context.get_type(node.name,self.errors)
+            print("*********Protocol****************")
+            print(node.extends)
+            if prohibit := node.extends == 'String' or node.extends == 'String' or node.extends == 'String':
+                self.errors.append(f' The protcol {node.name} can not inherit from String,Number or Boolean')
+
+            type_node.set_parent(self.context.get_type("Object" if node.extends == None or prohibit else node.extends ,self.errors))
             for decl in node.body:
-                type_node.define_method(self.visit(decl))
+                type_node.define_method(self.visit(decl))    
+
                 
         except SemanticError as e:
-            self.errors.append(e)    
+            self.errors.append(e)   
     
     @visitor.when(ProtocolMethodDeclaration)
     def visit(self,node):
+    
         try:
             param_names = []
             param_types = []
-            for param in node.parameters:
-                param_names.append(param.identifier)
-                param_types.append(self.context.get_type(param.type if param.type != None else "Object",self.errors))
-
-            return_type = self.context.get_type(node.type_annotation if node.type_annotation != None else "Object",self.errors)
-
-            return Method(node.method_name, param_names,param_types,return_type , None)
+            if node.parameters != None:
+                for param in node.parameters:
+                    print("******* PARAMS ********")
+                    print(param.identifier)
+                    param.type = self.context.get_type("Object" if param.type == None else param.type,self.errors)
+                    param_names.append(param.identifier)
+                    param_types.append(param.type)
+            print("******* type_anotation ********")
+            print(node.type_annotation)
+            return_type = self.context.get_type("Object" if node.type_annotation == None else node.type_annotation,self.errors)
+            return Method(node.method_name, param_names,param_types, return_type , None)
         except SemanticError as e:
-            self.errors.append(e)    
+            self.errors.append(e)
 
 class TypeChecker:
     def __init__(self, context, errors=[]):
@@ -182,6 +217,20 @@ class TypeChecker:
         self.current_method = None
         self.errors = errors
 
+        #Agregando las funciones built_in
+        self.context.create_type('Global')
+        self.context.create_method(Method('print',['x'],[self.context.get_type('String',self.errors)],[self.context.get_type('Void',self.errors)],None))
+        self.context.create_method(Method('sin',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],None))
+        self.context.create_method(Method('cos',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],None))
+        self.context.create_method(Method('exp',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],None))#ver si hay que ponerle cuerpo
+        self.context.create_method(Method('log',['base','x'],self.context.get_types(['Number','Number'],self.errors),[self.context.get_type('Number',self.errors)],None))
+        self.context.create_method(Method('rand',[],[],[self.context.get_type('Number',self.errors)],None))
+       
+    
+    
+    def conforms_to(self, arg, type):
+        return(arg.conforms_to(self.context.get_type(type,self.errors)))  
+
     @visitor.on('node')
     def visit(self, node, scope):
         pass
@@ -189,19 +238,11 @@ class TypeChecker:
     @visitor.when(Program)
     def visit(self, node, scope=None):
 
-        #Agregando las funciones built_in
-        self.context.create_type('Global')
-        self.context.create_method(Method('print',['x'],[self.context.get_type('String',self.errors)],[self.context.get_type('Void',self.errors)],[]))
-        self.context.create_method(Method('sin',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],[]))
-        self.context.create_method(Method('cos',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],[]))
-        self.context.create_method(Method('exp',['x'],[self.context.get_type('Number',self.errors)],[self.context.get_type('Number',self.errors)],[]))#ver si hay que ponerle cuerpo
-        self.context.create_method(Method('log',['base','x'],self.context.get_types(['Number','Number'],self.errors),[self.context.get_type('Number',self.errors)],[]))
-        self.context.create_method(Method('rand',[],[],[self.context.get_type('Number',self.errors)],[]))
-
+        
         #agregando las constantes
         scope = SemanticScope()
-        scope.define_variable('E','Number')#arreglar
-        scope.define_variable('PI','Number')#arreglar
+        scope.define_variable('E',self.context.get_type('Number',self.errors))#arreglar
+        scope.define_variable('PI',self.context.get_type('Number',self.errors))#arreglar
 
         
         # Comprobando correctitud de los métodos de una clase
@@ -226,10 +267,13 @@ class TypeChecker:
                 child.define_variable(method.param_names[i],method.param_types[i])
             for var in child.locals:
                 print(f'{var.name} {var.type}')
-            if method.body != []:
+            if method.body != None:
+    
                 retType = self.visit(method.body,child)
+                print("******Terminar de evaluar******")
+                print(retType)
                 if retType.name != method.return_type.name:
-                    self.errors.append(SemanticError(f'The function "{method.name}" does not return the type "{method.return_type}"'))
+                    self.errors.append(SemanticError(f'The function "{method.name}" does not return the type "{method.return_type.name}"'))
             scope.children.remove(child)
 
         for declaration in node.program_decl_list:
@@ -351,15 +395,19 @@ class TypeChecker:
     @visitor.when(UnaryBuildInFunction)
     def visit(self,node,scope):
        # print('Printeando un valor')
+        
+
         print('0000000000000000000'+str(node.argument))
         argType = self.visit(node.argument,scope)
         print('0000000000000000000'+str(node))
         if node.func =='print':
-            if argType.name == 'Number' or argType.name == 'String' or argType.name == 'Boolean' :
-                return Type('Void')
+            print("****** EN PRINT*******")
+            print(argType.name)
+            if self.conforms_to(argType, 'Number') or self.conforms_to(argType, 'String') or self.conforms_to(argType, 'Boolean') :
+                return self.context.get_type('Void',self.errors)
             self.errors.append(SemanticError('The argument is not valid'))
         else:
-            if argType.name == 'Number':
+            if argType.conforms_to(Number):
                 return argType
             self.errors.append(SemanticError('The argument is not a Number')) 
             return ErrorType()
@@ -432,6 +480,12 @@ class TypeChecker:
             return ErrorType()
         return elem1Type
 
+    #VarMethod(p.IDENTIFIER, p.function_call)
+    @visitor.when(VarMethod)
+    def visit(self,node,scope):
+        self.visit(node.identifier,scope)
+        return self.visit(node.function_call,scope)   
+
     # @visitor.when(VectorRangeDeclaration)
     # def visit(self,node,scope):
     #     elemType = self.visit(node.range[0],scope)
@@ -456,10 +510,13 @@ class TypeChecker:
 
     @visitor.when(Scope)
     def visit(self,node,scope):
+        print("***********Scope***************")
         child = scope.create_child()
 
         for st in node.statements:
+            print(st)
             result = self.visit(st,child)
+        
         return result
     
 
@@ -492,7 +549,21 @@ class TypeChecker:
         self.visit(node.else_elif_statement,scope)
 
         return self.visit(node.expression,scope)
-        
+
+    @visitor.when(FullConditional)
+    def visit(self,node,scope):#arreglar
+
+        conType = self.visit(node.conditional_expression,scope)
+
+        if conType.name != 'Boolean':
+            self.errors.append('The conditional expression is not evaluable')
+            return TypeError()
+        self.visit(node.else_elif_statement,scope)
+
+        for st in node.scope_list:
+            result = self.visit(st,scope)   
+
+        return result  
     
     @visitor.when(Not)
     def visit(self,node,scope):
@@ -543,13 +614,15 @@ class TypeChecker:
     def visit(self,node,scope):
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
-
-        eval1 = con1Type.name != 'Number' or con1Type.name != 'String'
-        eval2 = con2Type.name != 'Number' or con1Type.name != 'String'
+        print("**********Equal*********")
+        print(con1Type.name)
+        print(con2Type.name)
+        eval1 = con1Type.name != 'Number' and con1Type.name != 'String'
+        eval2 = con2Type.name != 'Number' and con1Type.name != 'String'
         if  eval1 :
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if  eval2 :
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  eval1 or eval2 :
             return ErrorType()
 
@@ -561,12 +634,12 @@ class TypeChecker:
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
 
-        eval1 = con1Type.name != 'Number' or con1Type.name != 'String'
-        eval2 = con2Type.name != 'Number' or con1Type.name != 'String'
+        eval1 = con1Type.name != 'Number' and con1Type.name != 'String'
+        eval2 = con2Type.name != 'Number' and con1Type.name != 'String'
         if  eval1 :
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if  eval2 :
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  eval1 or eval2 :
             return ErrorType()
 
@@ -577,9 +650,9 @@ class TypeChecker:
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
         if con1Type.name != 'Number':
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if con2Type.name != 'Number':
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  con1Type.name != 'Number' or con2Type.name != 'Number':
             return ErrorType()
         return con1Type
@@ -589,9 +662,9 @@ class TypeChecker:
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
         if con1Type.name != 'Number':
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if con2Type.name != 'Number':
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  con1Type.name != 'Number' or con2Type.name != 'Number':
             return ErrorType()
         return con1Type
@@ -601,9 +674,9 @@ class TypeChecker:
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
         if con1Type.name != 'Number':
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if con2Type.name != 'Number':
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  con1Type.name != 'Number' or con2Type.name != 'Number':
             return ErrorType()
         return con1Type
@@ -613,9 +686,9 @@ class TypeChecker:
         con1Type = self.visit(node.expr1,scope)
         con2Type = self.visit(node.expr2,scope)
         if con1Type.name != 'Number':
-            scope.errors.append(SemanticError('The first parameter\'s type in not Number'))
+            self.errors.append(SemanticError('The first parameter\'s type in not Number'))
         if con2Type.name != 'Number':
-            scope.errors.append(SemanticError('The second parameter\'s type in not Number'))   
+            self.errors.append(SemanticError('The second parameter\'s type in not Number'))   
         if  con1Type.name != 'Number' or con2Type.name != 'Number':
             return ErrorType()
         return con1Type
@@ -686,12 +759,12 @@ class TypeChecker:
         print("***** VARUSE ******")
         print(node.identifier)
         # print(node.type)
-        print("*****Buscando variables ******")
+        '''print("*****Buscando variables ******")
         for vari in scope.parent.locals:
             print("padre: " + vari.name)
         for vari in scope.locals:
             print("hijo: " +vari.name)
-        print("******************************")
+        print("******************************")'''
         var = scope.find_variable(node.identifier)
         
         if var != None:
@@ -728,14 +801,15 @@ class TypeChecker:
                 return ErrorType()
         else:
             return self.context.get_type('String',self.errors)
-    # @visitor.when(WhileLoop)#comprobar
-    # def visit(self,node,scope):
-    #     child = scope.create_child()
-    #     value = self.visit(node.condition,child)
-    #     if value[0]:
-    #         return self.visit(node.body,child)
-    #     else:
-    #         return None # ver que ponemos
+
+    @visitor.when(WhileLoop)#comprobar
+    def visit(self,node,scope):
+        
+        child = scope.create_child()
+        value = self.visit(node.condition,child)
+        print("*******(WhileLoop************")
+        print(value)
+        return self.visit(node.body,child)
 
     @visitor.when(Number)
     def visit(self,node,scope):
@@ -755,6 +829,6 @@ class TypeChecker:
         return node.type_downcast
 
 
-  
+
 
 
