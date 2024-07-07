@@ -469,16 +469,26 @@ class HulkToCilVisitor(HulkToCil):
     
     @visitor.when(VarInit)
     def visit(self, node: VarInit, scope: Scope, return_var= None):
-        var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
-        # var_type = node.expression
-        # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        print(node.expression)
-        var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
-        self.current_vars[node.identifier] = var
-        value = self.visit(node.expression, scope)
-        self.register_instruction(cil.AssignNode(var, value))
-        return var
+        # var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
+        # # var_type = node.expression
+        # # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
+        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
+        # print(node.expression)
+        # var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
+        # self.current_function.current_vars[node.identifier] = var
+        # value = self.visit(node.expression, scope)
+        # self.register_instruction(cil.AssignNode(var, value))
+        # return var
+
+        idx = self.get_local(node.identifier.identifier)
+        if not any(idx == l.name for l in self.current_function.localvars):
+            self.register_local(VariableInfo(node.identifier.identifier, node.identifier.type))
+
+        # Add Assignment Node
+        if node.expression:
+            self.visit(node.expression, idx)
+        else:
+            self.register_instruction(cil.ValueNode(idx, node.type))
     
     @visitor.when(VarDeclaration)
     def visit(self, node: VarDeclaration, scope: Scope, return_var= None):

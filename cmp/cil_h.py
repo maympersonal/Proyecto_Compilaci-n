@@ -304,6 +304,10 @@ def get_formatter():
         @visitor.when(DataNode)
         def visit(self, node: DataNode):
             return f'{node.name} = {node.value}'
+        
+        @visitor.when(LoadNode)
+        def visit(self, node: LoadNode):
+            return ""
 
         @visitor.when(ParamNode)
         def visit(self, node: ParamNode):

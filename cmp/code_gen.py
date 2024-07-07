@@ -380,8 +380,8 @@ class HulkMIPSGenerator:
         # print(f"{node.dest} = {node.left} / {node.right}")
         self.three_addr_op(MIPSTranslator.op_div, node)
     
-    @visitor.when(cil_h.PrintNode)
-    def visit(self, node: cil_h.PrintNode):
+    @visitor.when(cil_h.PrintIntNode)
+    def visit(self, node: cil_h.PrintIntNode):
         straddr_offset = self.get_stack_offset(node.str_addr)
         value = f"{node.str_addr}"
         print(MIPSTranslator.op_lw(REG_FRAME_POINTER, straddr_offset, REG_ARG[0]))
