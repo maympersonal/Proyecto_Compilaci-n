@@ -296,6 +296,7 @@ def get_formatter():
         def visit(self, node):
             params = '\n\t'.join(self.visit(x) for x in node.params)
             localvars = '\n\t'.join(self.visit(x) for x in node.localvars)
+            # print(node.instructions)
             instructions = '\n\t'.join(self.visit(x) for x in node.instructions)
 
             return f'function {node.name} {{\n\t{params}\n\n\t{localvars}\n\n\t{instructions}\n}}'
@@ -415,6 +416,7 @@ def get_formatter():
         
         @visitor.when(PrintStrNode)
         def visit(self, node: PrintStrNode):
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             # ? PRINT STR
             return f'PRINT {node.str_addr} '
         
@@ -437,6 +439,10 @@ def get_formatter():
         @visitor.when(ReturnNode)
         def visit(self, node: ReturnNode):
             return f'RETURN {node.value if node.value is not None else ""}'
+        
+        @visitor.when(LoadNode)
+        def visit(self, node):
+            return f"{node.dest} = LOAD {node.msg.name}"
         
         @visitor.when(LengthNode)
         def visit(self, node: LengthNode):

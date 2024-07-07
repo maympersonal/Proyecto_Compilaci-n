@@ -429,6 +429,8 @@ class HulkToCilVisitor(HulkToCil):
         result = self.define_internal_local()
         self.register_instruction(cil.ArgNode(instance))
         self.register_instruction(cil.StaticCallNode(main_meth_name, result))
+        # self.register_instruction(cil.ReturnNode(0))
+        
         
         self.register_instruction(cil.ExitNode())
         
@@ -445,7 +447,14 @@ class HulkToCilVisitor(HulkToCil):
         # print('!!!!!!!!!!!!!!AQUIIII DOTTYPES ---------')
         # print(program_node.dottypes)
         
-        # en hulk tambien hay que visitar en el atributo y tirar expresion de asignacion
+        # node.program_decl_list.append(TypeDeclaration('Main', []))
+        
+        print("------------------------------------------------------------------------------")
+        print('!!!!!!!!!!!!!!AQUIIII decl List ---------')
+        for decl in node.program_decl_list:
+            print(decl.__class__.__name__)
+        print("------------------------------------------------------------------------------")
+        
         
         for decl in node.program_decl_list:
             self.visit(decl, scope)
@@ -459,8 +468,8 @@ class HulkToCilVisitor(HulkToCil):
         var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
         # var_type = node.expression
         # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        print(node.expression)
+        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
+        # print(node.expression)
         var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
         self.current_vars[node.identifier] = var
         value = self.visit(node.expression, scope)
@@ -544,7 +553,7 @@ class HulkToCilVisitor(HulkToCil):
             # print("ARGS: "+ str(arg))
             # print("TIIIIPO: ", node.argument)
             if node.argument.__class__.__name__ == 'Number':
-                self.register_instruction(cil.PrintNode(arg))
+                self.register_instruction(cil.PrintIntNode(arg))
             else:
                 self.register_instruction(cil.PrintStrNode(arg))
             return arg   
