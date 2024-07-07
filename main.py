@@ -83,9 +83,8 @@ def hacer_lex(archivo, stop = False):
         print("-------------------")
         print(formatter(cil_ast))
         
-        code_gen = HulkMIPSGenerator()
-
-        code_gen.visit(cil_ast)
+        # code_gen = HulkMIPSGenerator()
+        # code_gen.visit(cil_ast)
 
         # v = viewer.visit(result)
         # print()
