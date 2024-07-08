@@ -39,9 +39,10 @@ class InstructionNode(Node):
     pass
 
 class AssignNode(InstructionNode):
-    def __init__(self, dest, source):
+    def __init__(self, dest, source): #, type):
         self.dest = dest
         self.source = source
+        # self.type = type
 
 class ArithmeticNode(InstructionNode):
     def __init__(self, dest, left, right):
@@ -250,8 +251,9 @@ class ExpNode(InstructionNode):
         self.dest = dest
 
 class ValueNode(Node):
-    def __init__(self, value) -> None:
+    def __init__(self, value, typex) -> None:
         self.value = value
+        self.type = typex
         
 class CompareTypesNode(InstructionNode):
     def __init__(self, dest, typeof, typex: str):
@@ -304,6 +306,10 @@ def get_formatter():
         @visitor.when(DataNode)
         def visit(self, node: DataNode):
             return f'{node.name} = {node.value}'
+        
+        @visitor.when(LoadNode)
+        def visit(self, node: LoadNode):
+            return ""
 
         @visitor.when(ParamNode)
         def visit(self, node: ParamNode):

@@ -163,8 +163,9 @@ class Context:
         typex = self.types[name] = Type(name)
         return typex
 
-    def get_type(self, name:str,errors):
+    def get_type(self, name:str,errors=[]):
         try:
+            print(self.types)
             return self.types[name]
         except KeyError:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))

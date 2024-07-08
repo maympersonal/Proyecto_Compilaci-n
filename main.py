@@ -8,6 +8,7 @@ from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCilVisitor
 from cmp.cil_h import get_formatter
+from cmp.code_gen import HulkMIPSGenerator
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -43,7 +44,7 @@ def hacer_lex(archivo, stop = False):
 
         #input()
         print()
-        result = parser.parse(lexer.tokenize(contenido))
+        result = parser.parse(tokens)
         
         v = viewer.visit(result)
         print()
@@ -74,6 +75,16 @@ def hacer_lex(archivo, stop = False):
         print("SCOPE CHILDREN")
         print(str(scope.children))
         
+        hulk_to_cil = HulkToCilVisitor(builder.context)
+        cil_ast = hulk_to_cil.visit(result, scope)
+
+        formatter = get_formatter()
+        print("CCCCCIIILLLLLLL")
+        print("-------------------")
+        print(formatter(cil_ast))
+        
+        # code_gen = HulkMIPSGenerator()
+        # code_gen.visit(cil_ast)
 
         # v = viewer.visit(result)
         # print()
@@ -115,8 +126,8 @@ def uno(archivo):
 
     
 #todos()
-#uno("programs/shorts/Debug.hulk")
-uno("programs/shorts/test3.hulk")
+uno("programs/shorts/Debug.hulk")
+# uno("programs/shorts/test2.hulk")
 #uno("programs/shorts/test55.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
