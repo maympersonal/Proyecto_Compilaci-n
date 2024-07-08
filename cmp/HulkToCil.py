@@ -482,7 +482,7 @@ class HulkToCilVisitor(HulkToCil):
         return program_node
     
     @visitor.when(FunctionDeclaration)
-    def visit(self, node: FunctionDeclaration, return_var=None):
+    def visit(self, node: FunctionDeclaration, scope, return_var=None):
         previous_method = self.current_method
         previous_function = self.current_function
         # self.current_method = self.current_type.get_method(node.id)
@@ -499,7 +499,8 @@ class HulkToCilVisitor(HulkToCil):
 
         # Body
         value = self.define_internal_local()
-        self.visit(node.body, value)
+        print(f"val: {value}")
+        self.visit(node.body, scope, value)
 
         # Return
         # if isinstance(self.current_method.return_type, VoidType):
@@ -549,7 +550,7 @@ class HulkToCilVisitor(HulkToCil):
         new_scope = Scope(scope)
         for var_init in node.var_init_list:
             self.visit(var_init, new_scope)
-        return self.visit(node.body, new_scope)
+        return self.visit(node.body, new_scope, return_var)
     
     @visitor.when(VarUse)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
@@ -585,8 +586,40 @@ class HulkToCilVisitor(HulkToCil):
         for arg in node.arguments:
             arg_name = self.visit(arg, scope)
             self.register_instruction(cil.ArgNode(arg_name))
-        ret = self.register_local()
+        ret = self.define_internal_local()
         self.register_instruction(cil.StaticCallNode(self.to_function_name(node.identifier, "void"), ret))
+
+    @visitor.when(WhileLoop)
+    def visit(self, node: WhileLoop, scope: Scope, return_var = None):
+        # While label
+        while_label = "WHILE_" + self.generate_next_id()
+        self.register_instruction(cil.LabelNode(while_label))
+
+        # Condition
+        c = self.define_internal_local()
+        self.visit(node.condition, c)
+
+        # If condition GOTO body_label
+        body_label = "BODY_" + self.generate_next_id()
+        self.register_instruction(cil.GotoIfNode(c, body_label))
+
+        # GOTO end_while label
+        end_while_label = "END_WHILE_" + self.generate_next_id()
+        self.register_instruction(cil.GotoNode(end_while_label))
+
+        # Body
+        self.register_instruction(cil.LabelNode(body_label))
+        self.visit(node.body, self.define_internal_local(), return_var)
+
+        # GOTO while label
+        self.register_instruction(cil.GotoNode(while_label))
+
+        # End while label
+        self.register_instruction(cil.LabelNode(end_while_label))
+
+        self.register_instruction(cil.ValueNode(return_var, "Void"))
+
+        #TODO: implement comparison
 
     @visitor.when(Add)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
@@ -647,7 +680,7 @@ class HulkToCilVisitor(HulkToCil):
     def visit(self, node: UnaryBuildInFunction, scope: Scope, return_var= None):
         # arg = self.visit(node.argument, scope, return_var)
         if node.func == 'print':
-            arg = self.visit(node.argument, scope)
+            arg = self.visit(node.argument, scope, return_var)
             # print("ARGS: "+ str(arg))
             # print("TIIIIPO: ", node.argument)
             if node.argument.__class__.__name__ == 'Number':
@@ -663,9 +696,9 @@ class HulkToCilVisitor(HulkToCil):
         self.register_instruction(cil.LoadNode(return_var, VariableInfo(idx, None, node.value))) 
     
     @visitor.when(Scope)
-    def visit(self, node: Scope, scope):
+    def visit(self, node: Scope, scope, return_var):
         for statement in node.statements:
-            self.visit(statement, scope)
+            self.visit(statement, scope, return_var)
     # @visitor.when(TypeDeclaration)
         
     
