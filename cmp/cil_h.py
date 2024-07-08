@@ -39,10 +39,10 @@ class InstructionNode(Node):
     pass
 
 class AssignNode(InstructionNode):
-    def __init__(self, dest, source, type):
+    def __init__(self, dest, source): #, type):
         self.dest = dest
         self.source = source
-        self.type = type
+        # self.type = type
 
 class ArithmeticNode(InstructionNode):
     def __init__(self, dest, left, right):
@@ -251,8 +251,9 @@ class ExpNode(InstructionNode):
         self.dest = dest
 
 class ValueNode(Node):
-    def __init__(self, value) -> None:
+    def __init__(self, value, typex) -> None:
         self.value = value
+        self.type = typex
         
 class CompareTypesNode(InstructionNode):
     def __init__(self, dest, typeof, typex: str):
