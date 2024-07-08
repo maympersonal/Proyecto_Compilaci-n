@@ -58,7 +58,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Attribute "{name}" is not defined in {self.name}.')
 
-    def define_attribute(self, attr):
+    def define_attribute(self, attr):#comprobar
         try:
             print(attr)
             self.get_attribute(attr.name)
@@ -79,7 +79,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
    
-    def define_method(self,newMethod):
+    def define_method(self,newMethod):#comprobar
         if newMethod.name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
         self.methods.append(newMethod)
@@ -132,10 +132,30 @@ class ErrorType(Type):
     def __eq__(self, other):
         return isinstance(other, Type)
 
+class VoidType(Type):
+    def __init__(self):
+        Type.__init__(self, '<void>')
+
+    def conforms_to(self, other):
+        raise Exception('Invalid type: void type.')
+
+    def bypass(self):
+        return True
+
+    def __eq__(self, other):
+        return isinstance(other, VoidType)
+
+class IntType(Type):
+    def __init__(self):
+        Type.__init__(self, 'int')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, IntType)
+
 class Context:
     def __init__(self):
         self.types = {}
-        self.methods = {}
+        self.methods = {}#agregado
 
     def create_type(self, name:str):
         if name in self.types:
@@ -151,6 +171,9 @@ class Context:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))
             return ErrorType()
 
+    def get_types(self, names:list,errors):
+        return [self.get_type(name,errors) for name in names]
+
     def get_type_cil(self, name:str):
 
         try:
@@ -162,9 +185,6 @@ class Context:
             print(SemanticError(f'Type "{name}" is not defined.'))
 
             return ErrorType()
-
-    def get_types(self, names:list,errors):
-        return [self.get_type(name,errors) for name in names]
        
     def create_method(self, newMethod):#agregado
         try:
@@ -205,6 +225,7 @@ class VariableInfo:
         self.name = name
         self.type = vtype
         self.data = data
+
 # class VectorType(Type):
 #     def __init__(self, name:str,elements_Type : Type):
 #         super.__init__(name)
@@ -258,4 +279,10 @@ def Obtain_Key(param_types):
     string = ",".join([parType.name for parType in param_types])
     return string
 def filter_by_name(data, name):
-    return {key: value for key, value in data.items() if key[0] == name}
+    print("FILTER BY NAME")
+    print(data)
+    '''for key, value in data.items():
+        if key == name:'''
+
+    #return {key: value for key, value in data.items() if key[0] == name}
+    return {key: value for key, value in data.items() if key == name}

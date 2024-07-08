@@ -101,9 +101,9 @@ class HulkParser(Parser):
     def var_init(self, p):
         self.parsertrack.append("var_init "+str([v for v in p]))
         if len(p) == 3:
-            return VarInit(p.identifier, p.inst)
+            return VarInit(p.identifier, p.inst, p[1])
         else:
-            return VarInit(p.identifier, p.inst, p.type_downcast)
+            return VarInit(p.identifier, p.inst, p[1],p.type_downcast)
 
     # Identificador o parámetro completamente tipado
     @_('atom', 
@@ -254,7 +254,7 @@ class HulkParser(Parser):
        'var_use ASSIGN expression')
     def var_asign(self, p):
         self.parsertrack.append("var_asign "+str([v for v in p]))
-        return VarInit(p.var_use, p.expression)
+        return VarInit(p.var_use, p.expression, p[1])
 
     # Declaración de función
     @_('FUNCTION IDENTIFIER parameters function_full_declaration')
