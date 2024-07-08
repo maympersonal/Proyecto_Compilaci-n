@@ -482,3 +482,320 @@ def get_formatter():
 
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))
+
+
+def get_formatter2():
+
+    class TreePrintVisitor(object):
+        def __init__(self, indent=0, prefix=''):
+            self.indent = indent
+            self.prefix = prefix
+
+        @visitor.on('node')
+        def visit(self, node):
+            pass
+
+        def _print_node(self, node, name):
+            print(f"{' ' * self.indent}{self.prefix}{name}")
+            self.indent += 1
+
+        def _visit_children(self, node, children_attr, prefix=''):
+            for child in getattr(node, children_attr):
+                self.visit(child, prefix=prefix)
+
+        @visitor.when(ProgramNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ProgramNode')
+            self._visit_children(node, 'dottypes', prefix='TYPES:')
+            self._visit_children(node, 'dotdata', prefix='DATA:')
+            self._visit_children(node, 'dotcode', prefix='CODE:')
+            self.indent -= 1
+
+        @visitor.when(TypeNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'TypeNode: {node.name}')
+            self._visit_children(node, 'attributes', prefix='\tAttributes:')
+            self._visit_children(node, 'methods', prefix='\tMethods:')
+            self.indent -= 1
+
+        @visitor.when(FunctionNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'FunctionNode: {node.name}')
+            self._visit_children(node, 'params', prefix='\tParams:')
+            self._visit_children(node, 'localvars', prefix='\tLocalVars:')
+            self._visit_children(node, 'instructions', prefix='\tInstructions:')
+            self.indent -= 1
+
+        # ... (Add similar visit methods for other node types) ...
+        @visitor.when(ArithmeticNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, node.__class__.__name__)
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.left, prefix='Left:')
+            self.visit(node.right, prefix='Right:')
+            self.indent -= 1
+        
+        @visitor.when(UnaryNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, node.__class__.__name__)
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.expr, prefix='Expr:')
+            self.indent -= 1
+        
+        @visitor.when(GetAttribNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'GetAttribNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.instance, prefix='Instance:')
+            self.indent -= 1
+        
+        @visitor.when(SetAttribNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'SetAttribNode')
+            self.visit(node.instance, prefix='Instance:')
+            self.visit(node.value, prefix='Value:')
+            self.indent -= 1
+        
+        @visitor.when(GetIndexNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'GetIndexNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.instance, prefix='Instance:')
+            self.visit(node.index, prefix='Index:')
+            self.indent -= 1
+        
+        @visitor.when(SetIndexNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'SetIndexNode')
+            self.visit(node.instance, prefix='Instance:')
+            self.visit(node.index, prefix='Index:')
+            self.visit(node.value, prefix='Value:')
+            self.indent -= 1
+        
+        @visitor.when(AllocateNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'AllocateNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.indent -= 1
+        
+        @visitor.when(ArrayNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ArrayNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.size, prefix='Size:')
+            self.indent -= 1
+        
+        @visitor.when(TypeOfNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'TypeOfNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.obj, prefix='Obj:')
+            self.indent -= 1
+        
+        @visitor.when(LabelNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'LabelNode: {node.name}')
+        
+        @visitor.when(GotoNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'GotoNode: {node.label}')
+        
+        @visitor.when(GotoIfNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'GotoIfNode: {node.condition} -> {node.label}')
+        
+        @visitor.when(StaticCallNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'StaticCallNode: {node.function}')
+            self.visit(node.dest, prefix='Dest:')
+            self.indent -= 1
+        
+        @visitor.when(DynamicCallNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'DynamicCallNode: {node.type} {node.method}')
+            self.visit(node.dest, prefix='Dest:')
+            self.indent -= 1
+        
+        @visitor.when(ArgNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'ArgNode: {node.name}')
+        
+        @visitor.when(ReturnNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ReturnNode')
+            self.visit(node.value, prefix='Value:')
+            self.indent -= 1
+        
+        @visitor.when(LoadNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'LoadNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.msg, prefix='Msg:')
+            self.indent -= 1
+        
+        @visitor.when(LengthNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'LengthNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.source, prefix='Source:')
+            self.indent -= 1
+        
+        @visitor.when(ConcatNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ConcatNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.left, prefix='Left:')
+            self.visit(node.right, prefix='Right:')
+            self.indent -= 1
+        
+        @visitor.when(SubstringNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'SubstringNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.source, prefix='Source:')
+            self.visit(node.index, prefix='Index:')
+            self.visit(node.length, prefix='Length:')
+            self.indent -= 1
+        
+        @visitor.when(ToStrNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ToStrNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.ivalue, prefix='Value:')
+            self.indent -= 1
+        
+        @visitor.when(ReadStringNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ReadStringNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.indent -= 1
+        
+        @visitor.when(ReadIntNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ReadIntNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.indent -= 1
+        
+        @visitor.when(VoidNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'VoidNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.value, prefix='Value:')
+            self.indent -= 1
+        
+        @visitor.when(PrintStrNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'PrintStrNode')
+            self.visit(node.str_addr, prefix='StrAddr:')
+            self.indent -= 1
+        
+        @visitor.when(PrintIntNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'PrintIntNode')
+            self.visit(node.int_addr, prefix='IntAddr:')
+            self.indent -= 1
+        
+        @visitor.when(SenNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'SenNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(CosNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'CosNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(TanNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'TanNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(SqrtNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'SqrtNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(LogNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'LogNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.base, prefix='Base:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(PowNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'PowNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.base, prefix='Base:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        @visitor.when(ExpNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ExpNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.x, prefix='X:')
+            self.indent -= 1
+        
+        
+        @visitor.when(CompareTypesNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'CompareTypesNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.typeof, prefix='TypeOf:')
+            self.visit(node.type, prefix='Type:')
+            self.indent -= 1
+        
+        @visitor.when(RunTimeErrorNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'RunTimeErrorNode: {node.msg}')
+        
+        @visitor.when(ExitNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'ExitNode')
+        
+        
+
+
+        @visitor.when(DataNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'DataNode: {node.name} = {node.value}')
+
+        @visitor.when(ParamNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'ParamNode: {node.name}')
+
+        @visitor.when(LocalNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'LocalNode: {node.name}')
+
+        # ... (Add similar visit methods for other node types) ...
+
+        @visitor.when(InstructionNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, node.__class__.__name__)
+
+        @visitor.when(AssignNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, 'AssignNode')
+            self.visit(node.dest, prefix='Dest:')
+            self.visit(node.source, prefix='Source:')
+            self.indent -= 1
+
+        # ... (Add similar visit methods for other node types) ...
+
+        @visitor.when(ValueNode)
+        def visit(self, node, prefix=''):
+            self._print_node(node, f'ValueNode: {node.value}')
+
+    printer = TreePrintVisitor()
+    return (lambda ast: printer.visit(ast))

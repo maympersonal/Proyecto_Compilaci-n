@@ -7,7 +7,7 @@ from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCilVisitor
-from cmp.cil_h import get_formatter
+from cmp.cil_h import get_formatter, get_formatter2
 
 
 def leer_archivos_hulk(ruta_carpeta):
@@ -87,6 +87,7 @@ def hacer_lex(archivo, stop = False):
         cil_ast = hulk_to_cil.visit(result, scope)
 
         formatter = get_formatter()
+        
         print(
             "-------------------"
 
@@ -95,6 +96,11 @@ def hacer_lex(archivo, stop = False):
         print("CCCCCIIILLLLLLL")
         print("-------------------")
         print(formatter(cil_ast))
+        print("-------------------")
+        # print2 = get_formatter2()
+        # print("Nodes de cil")
+        # print(print2(cil_ast))
+        
         if stop:
             input()
          
