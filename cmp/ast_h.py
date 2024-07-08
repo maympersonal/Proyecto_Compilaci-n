@@ -60,10 +60,12 @@ class VarDeclaration(Node):
 # Se le pasa `identifier`, `expression` y `type_downcast`.
 class VarInit(Node):
 
-    def __init__(self, identifier, expression, type_downcast=None):
+    def __init__(self, identifier, expression, assign, type_downcast=None):
         super().__init__()
         self.identifier = identifier
         self.expression = expression
+        self.identifier = identifier
+        self.assign = assign
         self.type_downcast = type_downcast
 
     def print_visitor(self, visitor):
@@ -76,7 +78,9 @@ class VarInit(Node):
 # o `atribute_declaration : identifier ASSIGN expression type_downcast`.
 # Se le pasa `identifier`, `expression` y `type_downcast`.
 class TypeVarInit(VarInit):
-    pass
+    def __init__(self, identifier, expression, type_downcast=None):
+        super().__init__(identifier, expression, "=", type_downcast=None)
+
 
 # Se usa en el parser en la regla `identifier : atom` 
 # o `identifier : fully_typed_param`.
