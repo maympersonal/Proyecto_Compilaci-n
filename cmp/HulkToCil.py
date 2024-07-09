@@ -529,8 +529,7 @@ class HulkToCilVisitor(HulkToCil):
 
         if not any(idx == l.name for l in self.current_function.localvars):
             self.register_local(VariableInfo(node.identifier.identifier, node.identifier.type))
-            self.register_instruction(cil.AssignNode(idx, value))
-            print(f"assign: {idx}")
+        self.register_instruction(cil.AssignNode(idx, value))
         # Add Assignment Node
         # if node.expression:
 
@@ -597,7 +596,7 @@ class HulkToCilVisitor(HulkToCil):
 
         # Condition
         c = self.define_internal_local()
-        self.visit(node.condition, c)
+        self.visit(node.condition, scope, c)
 
         # If condition GOTO body_label
         body_label = "BODY_" + self.generate_next_id()
@@ -619,7 +618,34 @@ class HulkToCilVisitor(HulkToCil):
 
         self.register_instruction(cil.ValueNode(return_var, "Void"))
 
-        #TODO: implement comparison
+    @visitor.when(LessThan)
+    def visit(self, node: LessThan, scope, return_var = None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+
+        self.register_instruction(cil.LessNode(return_var, left, right))
+
+    @visitor.when(LessEqual)
+    def visit(self, node: LessThan, scope, return_var = None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+
+        self.register_instruction(cil.LessEqualNode(return_var, left, right))
+
+    @visitor.when(GreaterThan)
+    def visit(self, node: GreaterThan, scope, return_var = None):
+        left = self.visit(node.expr2, scope)
+        right = self.visit(node.expr1, scope)
+
+        self.register_instruction(cil.LessNode(return_var, left, right))
+
+    @visitor.when(GreaterEqual)
+    def visit(self, node: GreaterEqual, scope, return_var = None):
+        left = self.visit(node.expr2, scope)
+        right = self.visit(node.expr1, scope)
+
+        self.register_instruction(cil.LessEqualNode(return_var, left, right))
+
 
     @visitor.when(Add)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
