@@ -588,6 +588,28 @@ class HulkToCilVisitor(HulkToCil):
         ret = self.define_internal_local()
         self.register_instruction(cil.StaticCallNode(self.to_function_name(node.identifier, "void"), ret))
 
+    @visitor.when(FullConditional)
+    def visit(self, node: FullConditional, scope, return_var= None):
+        # IF condition GOTO label
+        condition_value = self.define_internal_local()
+        self.visit(node.conditional_expression, scope, condition_value)
+        then_label = "THEN_" + self.generate_next_id()
+        self.register_instruction(cil.GotoIfNode(condition_value, then_label))
+
+        # Else
+        self.visit(node.else_elif_statement, scope, return_var)
+
+        # GOTO end_label
+        end_label = "END_IF_" + self.generate_next_id()  # Example: END_IF_120
+        self.register_instruction(cil.GotoNode(end_label))
+
+        # Then label
+        self.register_instruction(cil.LabelNode(then_label))
+        [self.visit(x, scope, return_var) for x in node.scope_list]
+
+        # end_label
+        self.register_instruction(cil.LabelNode(end_label))
+
     @visitor.when(WhileLoop)
     def visit(self, node: WhileLoop, scope: Scope, return_var = None):
         # While label
@@ -627,7 +649,9 @@ class HulkToCilVisitor(HulkToCil):
 
     @visitor.when(LessEqual)
     def visit(self, node: LessThan, scope, return_var = None):
+
         left = self.visit(node.expr1, scope)
+        print(left)
         right = self.visit(node.expr2, scope)
 
         self.register_instruction(cil.LessEqualNode(return_var, left, right))
@@ -646,6 +670,31 @@ class HulkToCilVisitor(HulkToCil):
 
         self.register_instruction(cil.LessEqualNode(return_var, left, right))
 
+    @visitor.when(Equal)
+    def visit(self, node: Equal, scope, return_var=None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+        
+        if False: # node.expr1.static_type.name == "String":
+            self.register_instruction(cil.StrEqualNode(return_var, left, right))
+        else:
+            self.register_instruction(cil.EqualNode(return_var, left, right))
+
+    @visitor.when(NotEqual)
+    def visit(self, node: NotEqual, scope, return_var = None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+
+        self.register_instruction(cil.NotEqualNode(return_var, left, right))
+
+    @visitor.when(Not)
+    def visit(self, node: Not, scope, return_var = None):
+        value = self.define_internal_local()
+        self.visit(node.condition, scope, value)
+        constant = self.define_internal_local()
+        self.register_instruction(cil.StaticCallNode(self.to_function_name("constructor", "Bool"), constant))
+        self.register_instruction(cil.AssignNode(constant, 1))
+        self.register_instruction(cil.MinusNode(return_var, constant, value))
 
     @visitor.when(Add)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
@@ -706,14 +755,16 @@ class HulkToCilVisitor(HulkToCil):
     def visit(self, node: UnaryBuildInFunction, scope: Scope, return_var= None):
         # arg = self.visit(node.argument, scope, return_var)
         if node.func == 'print':
-            arg = self.visit(node.argument, scope, return_var)
+            if return_var is None:
+                return_var = self.define_internal_local()
+            self.visit(node.argument, scope, return_var)
             # print("ARGS: "+ str(arg))
             # print("TIIIIPO: ", node.argument)
             if node.argument.__class__.__name__ == 'Number':
-                self.register_instruction(cil.PrintIntNode(arg))
+                self.register_instruction(cil.PrintIntNode(return_var))
             else:
-                self.register_instruction(cil.PrintStrNode(arg))
-            return arg   
+                self.register_instruction(cil.PrintStrNode(return_var))
+            return return_var   
         
     @visitor.when(String)
     def visit(self, node: String, scope: Scope, return_var):
@@ -722,7 +773,7 @@ class HulkToCilVisitor(HulkToCil):
         self.register_instruction(cil.LoadNode(return_var, VariableInfo(idx, None, node.value))) 
     
     @visitor.when(Scope)
-    def visit(self, node: Scope, scope, return_var):
+    def visit(self, node: Scope, scope, return_var=None):
         for statement in node.statements:
             self.visit(statement, scope, return_var)
     # @visitor.when(TypeDeclaration)
