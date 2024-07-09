@@ -1,1 +1,18 @@
-let hello = "Hello World!" in print(hello);
+function sum(x: Number, y: Number) {
+    print(x + y);
+}
+
+let x = 2 in {
+    let y = 4 in {
+        x := 3;
+        
+        while( x > 0) {
+            sum(x, y);
+            x := x - 1;
+        }
+    };
+};
+
+let z = 5 in {
+    sum(z, 5);
+};

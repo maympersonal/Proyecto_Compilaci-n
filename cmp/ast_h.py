@@ -757,3 +757,439 @@ class HulkPrintVisitor(object):
         self.tabs = self.tabs - 1
         return result
 
+def view_ast():
+    class PrintAST:
+        def __init__(self):
+            self.tabs = -1
+
+        def tabulate(self, result):
+            inter = '\\__ ' if self.tabs > 0 else ''
+            result = '\n' + '\t' * self.tabs + inter + result
+            self.tabs = self.tabs - 1
+            return result
+
+        @visitor.on('node')
+        def visit(self, node):
+            pass
+
+        @visitor.when(Program)
+        def visit(self, node):
+            decls = " , ".join([self.visit(pr) for pr in node.program_decl_list]) if isinstance(node.program_decl_list, list) else visitor.visit(node.program_decl_list)
+            res = f'{node.__class__.__name__} ({decls})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(FunctionDeclaration)
+        def visit(self, node):
+            #type_anotation = visitor.visit(self.type_anotation)
+            parameters = " , ".join([self.visit(pr) for pr in node.parameters])
+            body = self.visit(node.body)
+            res = f'{node.__class__.__name__} ({node.identifier} {node.type_anotation} {parameters} {body})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(VarDeclaration)
+        def visit(self, node):
+            var_init_list = " , ".join(
+            [self.visit(pr) for pr in node.var_init_list])
+            body = self.visit(node.body)
+            res = f'{node.__class__.__name__} ({var_init_list} {body})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(VarInit)
+        def visit(self,node):
+            identifier = self.visit(node.identifier)
+            expression = self.visit(node.expression)
+            type_downcast = self.visit(node.type_downcast) if node.type_downcast!=None else node.type_downcast
+            res = f'{node.__class__.__name__} ({identifier} {expression} {type_downcast})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(TypeVarInit)
+        def visit(self,node):
+            pass
+
+        @visitor.when(VarUse)
+        def visit(self,node):
+            identifier = node.identifier if isinstance(node.identifier, str) else self.visit(node.identifier)
+            res = f'{node.__class__.__name__} ({identifier} {node.type})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(VectorVarUse)
+        def visit(self, node):
+            index = self.visit(self.index)
+            identifier = node.identifier if isinstance(node.identifier, str) else self.visit(node.identifier)
+            res = f'{node.__class__.__name__} ({identifier} {index})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(InlineConditional)
+        def visit(self, node):
+            conditional_expression = self.visit(node.conditional_expression)
+            true_branch = self.visit(node.expression)
+            false_branch = self.visit(node.else_elif_statement)
+            res = f'{node.__class__.__name__} ({conditional_expression} {true_branch} {false_branch})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(FullConditional)
+        def visit(self, node):
+            conditional_expression = self.visit(node.conditional_expression)
+            scope_list = " , ".join([self.visit(pr) for pr in node.scope_list])
+            else_elif_statement = self.visit(node.else_elif_statement)
+            res = f'{node.__class__.__name__} ({conditional_expression} {scope_list} {else_elif_statement})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(WhileLoop)
+        def visit(self, node):
+            condition = self.visit(node.condition)
+            body = self.visit(node.body)
+            res = f'{node.__class__.__name__} ({condition} {body})'    
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(ForLoop)
+        def visit(self, node):
+            identifier = self.visit(node.identifier)
+            expression = self.visit(node.expression)
+            body = self.visit(node.body)
+            res = f'{node.__class__.__name__} ({identifier} {expression} {body})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(FunctionCall)
+        def visit(self, node):
+            arguments = " , ".join([self.visit(pr) for pr in node.arguments])
+            res = f'{node.__class__.__name__} ({node.identifier} {arguments})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Scope)
+        def visit(self,node):
+            statements = [self.visit(st) for st in node.statements]
+            res = f'{node.__class__.__name__} ({" , ".join(statements)})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(ScopeList)
+        def visit(self, node):
+            scopes = [self.visit(sc) for sc in node.scopes]
+            res = f'{node.__class__.__name__} ({scopes})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(Instruction)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ({node})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Expression)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ({node})'
+            self.tabulate(res)
+            return res
+            
+
+        @visitor.when(Aritmetic_operation)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ({node})'
+            self.tabulate(res)
+            return res
+            
+        @visitor.when(Concat)
+        def visit(self,node):
+            atom = self.visit(node.atom)
+            expression = self.visit(node.expression)
+            res = f'{node.__class__.__name__} ({atom} {node.operation} {expression})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Add)
+        def visit(self,node):
+            term = self.visit(node.term)
+            arith_op = self.visit(node.aritmetic_operation)
+            res = f'{node.__class__.__name__} ({term} {arith_op})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Sub)
+        def visit(self,node):
+            term = self.visit(node.term)
+            arith_op = self.visit(node.aritmetic_operation)
+            res = f'{node.__class__.__name__} ({term} {arith_op})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Term)
+        def visit(self,node):
+            pass
+
+        @visitor.when(Mod)
+        def visit(self,node):
+            factor = self.visit(node.factor)
+            term = self.visit(node.term) if node.term else ''
+            res = f'{node.__class__.__name__} ({factor} {term})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Div)
+        def visit(self,node):
+            factor = self.visit(node.factor)
+            term = self.visit(node.term) if node.term else ''
+            res = f'{node.__class__.__name__} ({factor} {term})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Mult)
+        def visit(self,node):
+            factor = self.visit(node.factor)
+            term = self.visit(node.term) if node.term else ''
+            res = f'{node.__class__.__name__} ({factor} {term})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Factor)
+        def visit(self,node):
+            pass
+
+        @visitor.when(Power)
+        def visit(self,node):
+            factor = self.visit(node.factor)
+            base_exponent = self.visit(node.base_exponent)
+            res = f'{node.__class__.__name__} ({factor} {base_exponent})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Atom)
+        def visit(self,node):
+            pass
+
+        @visitor.when(String)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ("{node.value}") ({node.type_downcast})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Number)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ("{node.value}") ({node.type_downcast})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Boolean)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ("{node.value}") ({node.type_downcast})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Unary)
+        def visit(self,node):
+            factor = self.visit(node.factor)
+            res = f'{node.__class__.__name__} ({node.sign} {factor})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(UnaryBuildInFunction)
+        def visit(self,node):
+            argument = self.visit(node.argument)
+            res = f'{node.__class__.__name__} ({node.func} {argument})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(BinaryBuildInFunction)
+        def visit(self,node):
+            argument1 = self.visit(node.argument1)
+            argument2 = self.visit(node.argument2)
+            res = f'{node.__class__.__name__} ({node.func} {argument1} {argument2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(NoParamBuildInFunction)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ({node.func})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(BuildInConst)
+        def visit(self,node):
+            res = f'{node.__class__.__name__} ({node.const})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Conditional_Expression)
+        def visit(self,node):
+            pass
+
+        @visitor.when(Not)
+        def visit(self,node):
+            condition = self.visit(node.condition)
+            res = f'{node.__class__.__name__} ({condition})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Or)
+        def visit(self,node):
+            condition = self.visit(node.condition)
+            conditional_expression = self.visit(node.conditional_expression)
+            res = f'{node.__class__.__name__} ({condition} {conditional_expression})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(And)
+        def visit(self,node):
+            condition = self.visit(node.condition)
+            conditional_expression = self.visit(node.conditional_expression)
+            res = f'{node.__class__.__name__} ({condition} {conditional_expression})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Is)
+        def visit(self,node):
+            conditional_expression = self.visit(node.conditional_expression)
+            res = f'{node.__class__.__name__} ({node.condition} {conditional_expression})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Comparation)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(NotEqual)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(Equal)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(LessEqual)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(GreaterEqual)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(LessThan)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(GreaterThan)
+        def visit(self,node):
+            expr1 = self.visit(node.expr1)
+            expr2 = self.visit(node.expr2)
+            res = f'{node.__class__.__name__} ({expr1} {expr2})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(VarMethod)
+        def visit(self,node):
+            function_call = self.visit(node.function_call)
+            res = f'{node.__class__.__name__} ({node.identifier} {function_call})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(VarAttr)
+        def visit(self,node):
+            attr = node.attr if isinstance(node.attr, str) else self.visit(node.attr)
+            res = f'{node.__class__.__name__} ({node.identifier} {attr})'
+            self.tabulate(res)
+            return res
+        
+        @visitor.when(TypeDeclaration)
+        def visit(self,node):
+            parameters = [self.visit(pr) for pr in node.parameters] if node.parameters != None else None
+            inherits_type = self.visit(node.inherits_type) if node.inherits_type != None else None
+            decl_body = self.visit(node.decl_body)
+            res = f'{node.__class__.__name__} ({node.identifier} {parameters} {inherits_type} {decl_body})'
+
+        @visitor.when(InheritsType)
+        def visit(self,node):
+            parameters = [self.visit(pr) for pr in node.parameters] if node.parameters != None else None
+            res = f'{node.__class__.__name__} ({node.identifier}, {parameters})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(TypeInstanciation)
+        def visit(self,node):
+            arguments = [self.visit(ar) for ar in node.arguments]
+            res = f'{node.__class__.__name__} ({node.identifier}, {arguments})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(DeclarationScope)
+        def visit(self,node):
+            statements = [self.visit(st) for st in node.statements]
+            res = f'{node.__class__.__name__} ({" , ".join(statements)})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(TypeMethodDeclaration)
+        def visit(self,node):
+            parameters = " , ".join([self.visit(pr) for pr in node.parameters])
+            body = self.visit(node.body)
+            res = f'{node.__class__.__name__} ({node.identifier} {node.type_anotation} {parameters} {body})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(ProtocolDeclaration)
+        def visit(self,node):
+            body = " , ".join([self.visit(pr) for pr in node.body])
+            res = f'{node.__class__.__name__} ({node.name} {node.extends} {body})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(ProtocolMethodDeclaration)
+        def visit(self,node):
+            parameters = None if node.parameters == None else " , ".join([self.visit(pr) for pr in node.parameters])
+            res = f'{node.__class__.__name__} ({node.method_name} {node.type_annotation} {parameters})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(VectorRangeDeclaration)
+        def visit(self,node):
+            range = " , ".join(
+                [self.visit(pr) for pr in node.range])
+            res = f'{node.__class__.__name__} ({range})'
+            self.tabulate(res)
+            return res
+
+        @visitor.when(VectorExpressionDeclaration)
+        def visit(self,node):
+            expression = self.visit(node.expression)
+            identifier = self.visit(node.identifier)
+            rangeexpression = self.visit(node.rangeexpression)
+            res = f'{node.__class__.__name__} ({expression} {identifier} { rangeexpression})'
+            self.tabulate(res)
+            return res
+    
+    return PrintAST()
+
