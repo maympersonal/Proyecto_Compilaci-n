@@ -1,7 +1,7 @@
 from io import FileIO
 from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
-from cmp.ast_h import HulkPrintVisitor
+from cmp.ast_h import HulkPrintVisitor, view_ast
 import os
 from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
@@ -35,7 +35,7 @@ def hacer_lex(archivo, stop = False):
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        viewer = HulkPrintVisitor()
+        viewer = view_ast()
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens

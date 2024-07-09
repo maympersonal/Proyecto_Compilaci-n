@@ -780,11 +780,11 @@ class HulkParser(Parser):
                 f.write(f'\nParser track:\n\n')
                 for track in self.parsertrack:
                     f.write(f'({state}): {track}\n')
-                    state += 1
-                viever = HulkPrintVisitor()
-                ast = viever.visit(result)
-                f.write(f'\nAST:\n\n')
-                f.write(ast)
+                    # state += 1
+                # viever = HulkPrintVisitor()
+                # ast = viever.visit(result)
+                # f.write(f'\nAST:\n\n')
+                # f.write(ast)
         '''for track in self.parsertrack:
             print(f'State {state}: {track}')
             state += 1'''
