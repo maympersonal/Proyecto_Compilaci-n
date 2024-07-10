@@ -79,7 +79,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
    
-    def define_method(self,newMethod):#comprobar
+    def define_method(self, newMethod: Method):#comprobar
         if newMethod.name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
         self.methods.append(newMethod)
@@ -196,7 +196,7 @@ class Context:
 
     def get_method(self, name:str, param_types:list):
         try:
-            return self.methods[name,param_types]
+            return self.methods[name]
         except KeyError:
             print((f'Method "{name}" is not defined.'))
             raise SemanticError(f'Method "{name}" is not defined.')

@@ -760,7 +760,7 @@ class HulkPrintVisitor(object):
 def view_ast():
     class PrintAST:
         def __init__(self):
-            self.tabs = -1
+            self.tabs = 0
 
         def tabulate(self, result):
             inter = '\\__ ' if self.tabs > 0 else ''
@@ -774,6 +774,7 @@ def view_ast():
 
         @visitor.when(Program)
         def visit(self, node):
+            print(f"decs: {node.program_decl_list}")
             decls = " , ".join([self.visit(pr) for pr in node.program_decl_list]) if isinstance(node.program_decl_list, list) else visitor.visit(node.program_decl_list)
             res = f'{node.__class__.__name__} ({decls})'
             self.tabulate(res)
@@ -808,7 +809,12 @@ def view_ast():
 
         @visitor.when(TypeVarInit)
         def visit(self,node):
-            pass
+            identifier = self.visit(node.identifier)
+            expression = self.visit(node.expression)
+            type_downcast = self.visit(node.type_downcast) if node.type_downcast!=None else node.type_downcast
+            res = f'{node.__class__.__name__} ({identifier} {expression} {type_downcast})'
+            self.tabulate(res)
+            return res
 
         @visitor.when(VarUse)
         def visit(self,node):
@@ -1130,6 +1136,7 @@ def view_ast():
             inherits_type = self.visit(node.inherits_type) if node.inherits_type != None else None
             decl_body = self.visit(node.decl_body)
             res = f'{node.__class__.__name__} ({node.identifier} {parameters} {inherits_type} {decl_body})'
+            return res
 
         @visitor.when(InheritsType)
         def visit(self,node):
@@ -1147,6 +1154,7 @@ def view_ast():
 
         @visitor.when(DeclarationScope)
         def visit(self,node):
+            print(f"st: {node.statements}")
             statements = [self.visit(st) for st in node.statements]
             res = f'{node.__class__.__name__} ({" , ".join(statements)})'
             self.tabulate(res)
