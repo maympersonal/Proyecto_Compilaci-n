@@ -25,7 +25,17 @@ class AFN:
                     cerradura.add(siguiente)
                     pila.append(siguiente)
         return cerradura
+    def epsilon_cerradura_conjunto(self, estados: Set):
+        cerradura = set()
+        for estado in estados:
+            cerradura |= self.epsilon_cerradura(estado) #union de conjuntos
+        return cerradura
     
+    def mover(self, estados: Set, simbolo: str):
+        mover = set()
+        for estado in estados:
+            mover |= self.transiciones[estado].get(simbolo, set())
+        return mover
     
     
 class AFD:
