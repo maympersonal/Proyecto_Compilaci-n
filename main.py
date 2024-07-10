@@ -1,13 +1,13 @@
 from io import FileIO
 from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
-from cmp.ast_h import HulkPrintVisitor, view_ast
+from cmp.ast_h import HulkPrintVisitor
 import os
 from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCilVisitor
-from cmp.cil_h import get_formatter
+from cmp.cil_h import get_formatter, get_formatter2
 from cmp.code_gen import HulkMIPSGenerator
 
 
@@ -35,7 +35,7 @@ def hacer_lex(archivo, stop = False):
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        viewer = view_ast()
+        viewer = HulkPrintVisitor()
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
@@ -108,9 +108,9 @@ def hacer_lex(archivo, stop = False):
         print("-------------------")
         print(formatter(cil_ast))
         print("-------------------")
-        # print2 = get_formatter2()
-        # print("Nodes de cil")
-        # print(print2(cil_ast))
+        print2 = get_formatter2()
+        print("Nodes de cil")
+        print(print2(cil_ast))
         
         if stop:
             input()
