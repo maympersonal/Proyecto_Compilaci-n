@@ -35,7 +35,7 @@ def hacer_lex(archivo, stop = False):
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        viewer = view_ast()
+        #viewer = view_ast()
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
@@ -46,10 +46,10 @@ def hacer_lex(archivo, stop = False):
         print()
         result = parser.parse(tokens)
         
-        v = viewer.visit(result)
+        '''v = viewer.visit(result)
         print()
         print("AST = " + v)
-        print()
+        print()'''
         print(result)
         print(archivo)
         if stop:
@@ -126,8 +126,8 @@ def uno(archivo):
 
     
 #todos()
-uno("programs/shorts/Debug.hulk")
-# uno("programs/shorts/test2.hulk")
+#uno("programs/shorts/Debug.hulk")
+uno("programs/shorts/test4.hulk")
 #uno("programs/shorts/test55.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
