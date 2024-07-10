@@ -34,6 +34,15 @@ class TypeCollector(object):
         for declaration in node.program_decl_list:
             self.visit(declaration)
         
+        # object
+        obj.define_method(Method('abort',[],[],obj,[]))
+        #obj.define_method(Method('copy',[],[],self_type,[]))
+        obj.define_method(Method('type_name',[],[],String,[]))
+
+        # string
+        String.define_method(Method('length',[],[],Number,[]))
+        String.define_method(Method('concat',["other"],[String],String,[]))
+        String.define_method(Method('substr',["from","to"],[Number,Number],String,[]))
         return self.context  
 
     @visitor.when(TypeDeclaration)
@@ -187,15 +196,7 @@ class TypeChecker:
         #self.context.create_method(Method('current',[],[],self.context.get_type('Number',self.errors),None))
         #self.context.create_method(Method('next',[],[],self.context.get_type('Boolean',self.errors),None))
 
-        # object
-        obj.define_method(Method('abort',[],[],obj,[]))
-        obj.define_method(Method('copy',[],[],self_type,[]))
-        obj.define_method(Method('type_name',[],[],String,[]))
-
-        # string
-        String.define_method(Method('length',[],[],Number,[]))
-        String.define_method(Method('concat',["other"],[String],String,[]))
-        String.define_method(Method('substr',["from","to"],[Number,Number],String,[]))
+        
 
 
         self.context.create_type("Main")
