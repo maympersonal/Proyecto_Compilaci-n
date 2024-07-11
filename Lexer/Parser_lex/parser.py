@@ -1,7 +1,8 @@
 from Lexer.Cmp_lex.automata import State
-from Lexer.Cmp_lex.utils import Item, NonTerminal, ContainerSet, Production
+from Lexer.Cmp_lex.utils import Item, NonTerminal, ContainerSet, Production, LexerError
 from typing import List, Tuple
 from Lexer.Parser_lex.utils_parser import compute_firsts, compute_follows
+
 
 def build_LR0_automaton(G):
     assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
@@ -87,7 +88,7 @@ class ShiftReduceParser:
                 # Follow the row state and give the terminals that have either shift or reduce
                 # actions
                 actions = {k[1] for k in self.action if k[0] == state}
-                raise (
+                raise LexerError(
                     f"PARSER ERROR: Invalid token on cursor {cursor} and lookahead {lookahead}, expected one of {actions}")
 
             if action == ShiftReduceParser.SHIFT:

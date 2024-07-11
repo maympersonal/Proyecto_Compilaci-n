@@ -1,5 +1,9 @@
 from Lexer.Cmp_lex.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
 
+class LexerError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
 class ContainerSet:
     def __init__(self, *values, contains_epsilon=False):
         self.set = set(values)
