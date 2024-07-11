@@ -53,11 +53,31 @@ def get_printer(AtomicNode=AtomicNode, UnaryNode=UnaryNode, BinaryNode=BinaryNod
         def visit(self, node, tabs):
             pass
 
-        @visitor.when(UnaryNode)
+        @visitor.when(ConcatenationNode)
         def visit(self, node, tabs=0):
-            ans = '\t' * tabs + f'\\__<expr> {node.__class__.__name__}'
-            child = self.visit(node.node, tabs + 1)
-            return f'{ans}\n{child}'
+            ans = '\t' * tabs + f'\\__<expr> Concat <expr>'
+            left = self.visit(node.left, tabs + 1)
+            right = self.visit(node.right, tabs + 1)
+            return f'{ans}\n{left}\n{right}'
+
+        @visitor.when(UnionNode)
+        def visit(self, node, tabs=0):
+            ans = '\t' * tabs + f'\\__<expr> Union <expr>'
+            left = self.visit(node.left, tabs + 1)
+            right = self.visit(node.right, tabs + 1)
+            return f'{ans}\n{left}\n{right}'
+
+        @visitor.when(ClausureNode)
+        def visit(self, node, tabs=0):
+            ans = '\t' * tabs + f'\\__ClausureNode: <expr>*'
+            expr = self.visit(node.child, tabs + 1)
+            return f'{ans}\n{expr}'
+
+        @visitor.when(PositiveClausureNode)
+        def visit(self, node, tabs=0):
+            ans = '\t' * tabs + f'\\__PositiveClausureNode: <expr>+'
+            body = self.visit(node.child, tabs + 1)
+            return f'{ans}\n{body}'
 
         @visitor.when(BinaryNode)
         def visit(self, node, tabs=0):
@@ -66,41 +86,34 @@ def get_printer(AtomicNode=AtomicNode, UnaryNode=UnaryNode, BinaryNode=BinaryNod
             right = self.visit(node.right, tabs + 1)
             return f'{ans}\n{left}\n{right}'
 
-        @visitor.when(AtomicNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
-        @visitor.when(VocabularyNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
-        @visitor.when(ClausureNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-
-        @visitor.when(PositiveClausureNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
         @visitor.when(OptionalNode)
         def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
-        @visitor.when(ConcatenationNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
-        @visitor.when(UnionNode)
-        def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
+            ans = '\t' * tabs + f'\\__OptionalNode: <expr>?'
+            body = self.visit(node.child, tabs + 1)
+            return f'{ans}\n{body}'
+
         @visitor.when(NotNode)
         def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
-        
+            ans = '\t' * tabs + f'\\__NotNode: <expr>?'
+            body = self.visit(node.child, tabs + 1)
+            return f'{ans}\n{body}'
+
+        @visitor.when(AtomicNode)
+        def visit(self, node, tabs=0):
+            return '\t' * tabs + f'\\__AtomicNode: {node.value}'
+
         @visitor.when(EllipsisNode)
         def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__ {node.__class__.__name__}: {node.lex}'
+            ans = '\t' * tabs + f'\\__EllipsisNode: <expr>...<expr>'
+            left = self.visit(node.left, tabs + 1)
+            right = self.visit(node.right, tabs + 1)
+            return f'{ans}\n{left}\n{right}'
+
+        @visitor.when(VocabularyNode)
+        def visit(self, node, tabs=0):
+            ans = '\t' * tabs + f'\\__VocabularyNode: <-|->'
+            return f'{ans}'
+
         
         
         
