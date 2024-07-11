@@ -1,4 +1,4 @@
-from Lexer.automaton_NFA import NFA
+from Lexer.Automaton.automaton_NFA import NFA
 from typing import Dict, Tuple
 
 class DFA(NFA):

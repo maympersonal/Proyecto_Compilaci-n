@@ -1,5 +1,5 @@
-from Lexer.automaton_NFA import NFA
-from Lexer.automaton_DFA import DFA
+from Lexer.Automaton.automaton_NFA import NFA
+from Lexer.Automaton.automaton_DFA import DFA
 from Lexer.Cmp_lex.utils import ContainerSet, DisjointSet
 from typing import Dict, Tuple, Set
 

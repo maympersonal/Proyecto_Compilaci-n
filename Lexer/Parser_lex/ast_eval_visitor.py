@@ -1,6 +1,6 @@
 from Lexer.Cmp_lex import visitor
-from Lexer.automaton_operations import *
-from Lexer.automaton_common import automata_minimization, nfa_to_dfa
+from Lexer.Automaton.automaton_operations import *
+from Lexer.Automaton.automaton_common import automata_minimization, nfa_to_dfa
 from Lexer.Parser_lex.ast_lex import *
 from Lexer.Cmp_lex.chars import r_chars, regex_grammar_default
 

@@ -4,9 +4,9 @@ from Lexer.Parser_lex.parser import evaluate_reverse_parse
 from Lexer.Parser_lex.ast_lex import get_printer
 from Lexer.Parser_lex.ast_eval_visitor import EvaluateVisitor
 from Lexer.Parser_lex.grammar import RegexGrammar
-from Lexer.automaton_common import nfa_to_dfa, automata_minimization    
+from Lexer.Automaton.automaton_common import nfa_to_dfa, automata_minimization    
 from Lexer.Parser_lex.parser import SLR1Parser
-from Lexer.automaton_DFA import DFA
+from Lexer.Automaton.automaton_DFA import DFA
 
 def build_regex(regex: str, verbose = False) -> Tuple[DFA, List[str]]:
     tokens = []
