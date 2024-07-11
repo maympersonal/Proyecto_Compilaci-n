@@ -1,7 +1,7 @@
-from cmp_lex.automata import State
-from cmp_lex.utils import Item, NonTerminal, ContainerSet, Production
+from Lexer.Cmp_lex.automata import State
+from Lexer.Cmp_lex.utils import Item, NonTerminal, ContainerSet, Production
 from typing import List, Tuple
-from utils import compute_firsts, compute_follows
+from Lexer.Parser_lex.utils_parser import compute_firsts, compute_follows
 
 def build_LR0_automaton(G):
     assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
@@ -160,7 +160,7 @@ def evaluate_reverse_parse(right_parse, operations, tokens):
     for operation in operations:
         if operation == ShiftReduceParser.SHIFT:
             token = next(tokens)
-            stack.append(token.Lemma)
+            stack.append(token.lex)
         elif operation == ShiftReduceParser.REDUCE:
             production = next(right_parse)
             head, body = production

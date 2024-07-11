@@ -1,4 +1,4 @@
-from automaton_NFA import NFA
+from Lexer.automaton_NFA import NFA
 
 def automata_union(a1, a2):
     transitions = {}

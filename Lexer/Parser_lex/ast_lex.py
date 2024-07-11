@@ -1,4 +1,4 @@
-from cmp_lex import visitor
+from Lexer.Cmp_lex import visitor
 class Node:
     def evaluate(self):
         raise NotImplementedError()
@@ -70,13 +70,13 @@ def get_printer():
         @visitor.when(ClausureNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__ClausureNode: <expr>*'
-            expr = self.visit(node.child, tabs + 1)
+            expr = self.visit(node.node, tabs + 1)
             return f'{ans}\n{expr}'
 
         @visitor.when(PositiveClausureNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__PositiveClausureNode: <expr>+'
-            body = self.visit(node.child, tabs + 1)
+            body = self.visit(node.node, tabs + 1)
             return f'{ans}\n{body}'
 
         @visitor.when(BinaryNode)
@@ -89,18 +89,18 @@ def get_printer():
         @visitor.when(OptionalNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__OptionalNode: <expr>?'
-            body = self.visit(node.child, tabs + 1)
+            body = self.visit(node.node, tabs + 1)
             return f'{ans}\n{body}'
 
         @visitor.when(NotNode)
         def visit(self, node, tabs=0):
             ans = '\t' * tabs + f'\\__NotNode: <expr>?'
-            body = self.visit(node.child, tabs + 1)
+            body = self.visit(node.node, tabs + 1)
             return f'{ans}\n{body}'
 
         @visitor.when(AtomicNode)
         def visit(self, node, tabs=0):
-            return '\t' * tabs + f'\\__AtomicNode: {node.value}'
+            return '\t' * tabs + f'\\__AtomicNode: {node.lex}'
 
         @visitor.when(EllipsisNode)
         def visit(self, node, tabs=0):

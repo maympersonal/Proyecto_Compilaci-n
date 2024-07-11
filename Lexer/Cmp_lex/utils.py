@@ -1,4 +1,4 @@
-from cmp_lex.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
+from Lexer.Cmp_lex.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
 
 class ContainerSet:
     def __init__(self, *values, contains_epsilon=False):
@@ -115,9 +115,10 @@ class Token:
         Token's type.
     """
 
-    def __init__(self, lex, token_type):
+    def __init__(self, lex, token_type, pos):
         self.lex = lex
         self.token_type = token_type
+        self.pos = pos
 
     def __str__(self):
         return f'{self.token_type}: {self.lex}'
@@ -505,15 +506,21 @@ class Grammar():
         self.Epsilon = Epsilon(self)
         self.EOF = EOF(self)
 
-        self.symbDict = { '$': self.EOF }
+        self.symbDict = {'$': self.EOF}
 
-    def NonTerminal(self, name, startSymbol = False):
+    def addWhitespace(self):
+        term = Terminal(' ', self)
+        self.terminals.append(term)
+        self.symbDict[' '] = term
+        return term
+
+    def NonTerminal(self, name, startSymbol=False):
 
         name = name.strip()
         if not name:
             raise Exception("Empty name")
 
-        term = NonTerminal(name,self)
+        term = NonTerminal(name, self)
 
         if startSymbol:
 
@@ -532,7 +539,6 @@ class Grammar():
 
         return ans
 
-
     def Add_Production(self, production):
 
         if len(self.Productions) == 0:
@@ -542,7 +548,6 @@ class Grammar():
 
         production.Left.productions.append(production)
         self.Productions.append(production)
-
 
     def Terminal(self, name):
 

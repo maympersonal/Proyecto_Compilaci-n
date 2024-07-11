@@ -1,7 +1,7 @@
-from automaton_NFA import NFA
-from automaton_DFA import DFA
+from Lexer.automaton_NFA import NFA
+from Lexer.automaton_DFA import DFA
+from Lexer.Cmp_lex.utils import ContainerSet, DisjointSet
 from typing import Dict, Tuple, Set
-from cmp_lex.utils import ContainerSet, DisjointSet
 
 """ 
 Conjunto de estados del NFA para los cuales hay una transición sobre el

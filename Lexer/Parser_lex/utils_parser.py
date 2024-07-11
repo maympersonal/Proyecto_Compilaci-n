@@ -1,4 +1,4 @@
-from cmp_lex.utils import ContainerSet
+from Lexer.Cmp_lex.utils import ContainerSet
 def compute_firsts(G):
     firsts = {}
     change = True

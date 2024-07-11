@@ -1,8 +1,8 @@
-from cmp_lex import visitor
-from automaton_operations import *
-from automaton_common import automata_minimization, nfa_to_dfa
-from ast_lex import *
-from cmp_lex.chars import regular_chars, regex_grammar_extra_chars
+from Lexer.Cmp_lex import visitor
+from Lexer.automaton_operations import *
+from Lexer.automaton_common import automata_minimization, nfa_to_dfa
+from Lexer.Parser_lex.ast_lex import *
+from Lexer.Cmp_lex.chars import r_chars, regex_grammar_default
 
 
 class EvaluateVisitor(object):
@@ -24,32 +24,32 @@ class EvaluateVisitor(object):
 
     @visitor.when(ClausureNode)
     def visit(self, node):
-        child_auto = self.visit(node.child)
+        child_auto = self.visit(node.node)
         return automata_clausure(child_auto)
 
     @visitor.when(PositiveClausureNode)
     def visit(self, node):
-        child_auto = self.visit(node.child)
+        child_auto = self.visit(node.node)
         return automata_pclausure(child_auto)
 
     @visitor.when(OptionalNode)
     def visit(self, node):
-        child_auto = self.visit(node.child)
+        child_auto = self.visit(node.node)
         return automata_optional(child_auto)
 
     @visitor.when(NotNode)
     def visit(self, node):
-        child_auto = self.visit(node.child)
+        child_auto = self.visit(node.node)
         return automata_not(child_auto)
 
     @visitor.when(AtomicNode)
     def visit(self, node):
-        lex = node.value
+        lex = node.lex
         return automata_symbol(lex)
 
     @visitor.when(VocabularyNode)
     def visit(self, node):
-        chars = regular_chars.split()
+        chars = r_chars.split()
         first = automata_symbol(chars[0])
         second = automata_symbol(chars[1])
         result = automata_union(first, second)
@@ -57,7 +57,7 @@ class EvaluateVisitor(object):
         for c in chars[2:]:
             result = automata_union(result, automata_symbol(c))
 
-        for c in regex_grammar_extra_chars.split():
+        for c in regex_grammar_default.split():
             result = automata_union(result, automata_symbol(c))
 
         result = automata_union(result, automata_symbol(' '))
@@ -65,8 +65,8 @@ class EvaluateVisitor(object):
 
     @visitor.when(EllipsisNode)
     def visit(self, node):
-        left_lex = node.left.value
-        right_lex = node.right.value
+        left_lex = node.left.lex
+        right_lex = node.right.lex
 
         # Get ASCII values of left_lex and right_lex
         left_ascii = ord(left_lex)

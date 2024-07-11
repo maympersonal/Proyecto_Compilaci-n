@@ -1,6 +1,6 @@
-from cmp_lex.utils import Grammar
-from ast_lex import *
-from cmp_lex.chars import r_chars
+from Lexer.Cmp_lex.utils import Grammar
+from Lexer.Parser_lex.ast_lex import *
+from Lexer.Cmp_lex.chars import r_chars
 
 
 def RegexGrammar():
@@ -25,7 +25,7 @@ def RegexGrammar():
     branch %= piece + pipe + branch, lambda h, s: UnionNode(left=s[1], right=s[3])
 
     piece %= atom, lambda h, s: s[1]
-    piece %= atom + symbol, lambda h, s: s[2](child=s[1]),
+    piece %= atom + symbol, lambda h, s: s[2](node=s[1]),
 
     symbol %= plus, lambda h, s: PositiveClausureNode
     symbol %= star, lambda h, s: ClausureNode
@@ -37,7 +37,7 @@ def RegexGrammar():
     atom %= obrack + char_class_body + cbrack, lambda h, s: s[2]
 
     whitespace = G.addWhitespace()
-    literal %= whitespace, lambda h, s: AtomicNode(value=s[1])
+    literal %= whitespace, lambda h, s: AtomicNode(lex=s[1])
 
     literal %= scape + escape_comp, lambda h, s: s[2]
 
@@ -45,13 +45,13 @@ def RegexGrammar():
     escape_comp %= A, lambda h, s: VocabularyNode()
 
     for v in literal_characters + quotes:
-        literal %= v, lambda h, s: AtomicNode(value=s[1])
+        literal %= v, lambda h, s: AtomicNode(lex=s[1])
 
     for v in [plus, star, question, bang, opar, cpar, obrack, cbrack, pipe, dot, scape]:
-        escape_comp %= v, lambda h, s: AtomicNode(value=s[1])
+        escape_comp %= v, lambda h, s: AtomicNode(lex=s[1])
 
     for v in quotes:
-        escape_comp %= v, lambda h, s: AtomicNode(value=s[1])
+        escape_comp %= v, lambda h, s: AtomicNode(lex=s[1])
 
     char_class_body %= char_class_character, lambda h, s: s[1]
     char_class_body %= char_class_character + char_class_body, lambda h, s: ConcatenationNode(left=s[1], right=s[2])
