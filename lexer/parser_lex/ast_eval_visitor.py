@@ -22,27 +22,27 @@ class EvaluateVisitor(object):
         right_auto = self.visit(node.right)
         return automata_union(left_auto, right_auto)
 
-    @visitor.when(ClosureNode)
+    @visitor.when(ClausureNode)
     def visit(self, node):
         child_auto = self.visit(node.child)
-        return automata_closure(child_auto)
+        return automata_clausure(child_auto)
 
-    @visitor.when(PClosureNode)
+    @visitor.when(PositiveClausureNode)
     def visit(self, node):
         child_auto = self.visit(node.child)
-        return automata_pclosure(child_auto)
+        return automata_pclausure(child_auto)
 
-    @visitor.when(PossibleNode)
+    @visitor.when(OptionalNode)
     def visit(self, node):
         child_auto = self.visit(node.child)
-        return automata_possible(child_auto)
+        return automata_optional(child_auto)
 
     @visitor.when(NotNode)
     def visit(self, node):
         child_auto = self.visit(node.child)
         return automata_not(child_auto)
 
-    @visitor.when(LiteralNode)
+    @visitor.when(AtomicNode)
     def visit(self, node):
         lex = node.value
         return automata_symbol(lex)

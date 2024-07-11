@@ -67,7 +67,7 @@ def automata_concatenation(a1, a2):
     return NFA(states, finals, transitions, start)
 
 
-def automata_closure(a1):
+def automata_clausure(a1):
     transitions = {}
 
     start = 0
@@ -90,8 +90,8 @@ def automata_closure(a1):
     return NFA(states, finals, transitions, start)
 
 
-def automata_pclosure(a1):
-    return automata_concatenation(a1, automata_closure(a1))
+def automata_pclausure(a1):
+    return automata_concatenation(a1, automata_clausure(a1))
 
 
 def automata_optional(a1):
