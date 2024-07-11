@@ -46,7 +46,7 @@ class EllipsisNode(BinaryNode):
     
     
         
-def get_printer(AtomicNode=AtomicNode, UnaryNode=UnaryNode, BinaryNode=BinaryNode, ):
+def get_printer():
 
     class PrintVisitor(object):
         @visitor.on('node')
@@ -119,4 +119,3 @@ def get_printer(AtomicNode=AtomicNode, UnaryNode=UnaryNode, BinaryNode=BinaryNod
         
     printer = PrintVisitor()
     return (lambda ast: printer.visit(ast))
-printer = get_printer(AtomicNode=AtomicNode, UnaryNode=UnaryNode, BinaryNode=BinaryNode)
