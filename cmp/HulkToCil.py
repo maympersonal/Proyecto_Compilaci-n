@@ -1,5 +1,5 @@
 import cmp.cil_h as cil
-from cmp.semantic import VariableInfo, Context, Type
+from cmp.semantic import VariableInfo, Context, Type, Method
 from cmp.ast_h import *
 from typing import List, Dict
 import math
@@ -49,8 +49,8 @@ class HulkToCil:
             name = f'local_{len(self.current_function.localvars)}'
             vinfo = VariableInfo(name, None)
             
-        local_node = cil.LocalNode(vinfo.name)
-        self.localvars.append(local_node)
+        local_node = cil.LocalNode(vinfo.name, vinfo.type)
+        self.current_function.localvars.append(local_node)
         return vinfo.name
 
     def define_internal_local(self):
@@ -84,8 +84,11 @@ class HulkToCil:
     def get_param(self, name):
         return f"param_{name}"
 
-    def get_var(self, name):
-        return 
+    def get_var(self, name) -> cil.LocalNode:
+        for var in self.localvars:
+            if var.name == name:
+                return var
+        return None
 
     def build_internal_param(self, vname):
         vname = f"param_{vname}"
@@ -119,14 +122,17 @@ class HulkToCil:
     def add_builtin_entry(self):
         builtin_types = ["Object", "Number", "String", "Boolean"]
         for typex in builtin_types:
+            last_function = self.current_function
             self.current_function = cil.FunctionNode(self.to_function_name('entry', typex), [], [], [])
             self.params.append(cil.ParamNode('self'))
             self.register_instruction(cil.ReturnNode('self'))
             self.dotcode.append(self.current_function)
+            self.current_function = last_function
 
         # self.current_function = None
     
     def build_entry(self, node: TypeDeclaration):
+        last_function = self.current_function
         self.current_function = self.register_function(self.to_function_name('entry', node.identifier))
         
         self.params.append(cil.ParamNode('self'))
@@ -139,6 +145,44 @@ class HulkToCil:
             self.register_instruction(cil.SetAttribNode('self', self.to_attr_name(node.identifier,attr), instance, node.identifier))
 
         self.register_instruction(cil.ReturnNode('self'))
+        self.current_function = last_function
+    
+    def build_constructor(self, node):
+        # TODO: fix inherited constructor
+        last_function = self.current_function
+
+        self.current_function = self.register_function(
+            self.to_function_name("constructor", node.identifier)
+        )
+
+        self.params.append(cil.ParamNode("self"))
+        for arg in node.parameters:
+            self.params.append(cil.ParamNode(arg.identifier))
+        method = Method(
+            "constructor", 
+            [x.identifier for x in node.parameters], 
+            [self.context.get_type(x.type) for x in node.parameters], 
+            self.context.get_type(node.identifier), 
+            node.parameters
+        )
+        self.current_type.define_method(method)
+
+        for attr, (_, typex) in self.attrs[self.current_type.name].items():
+            instance = self.define_internal_local()
+            self.register_instruction(cil.ArgNode("self"))
+            self.register_instruction(cil.StaticCallNode(
+                self.to_function_name(f"{attr}_constructor",typex),
+                instance
+            ))
+            self.register_instruction(cil.SetAttribNode(
+                "self",
+                self.to_attr_name(node.identifier, attr),
+                instance,
+                node.identifier
+            ))
+
+        self.register_instruction(cil.ReturnNode("self"))
+        self.current_function = last_function
         
     # METODOS DE TIPOS BUILTIN 
     # OBJECT
@@ -276,7 +320,7 @@ class HulkToCil:
     # ------------------------------------------- 
     
     def cil_abstract_method(self, mname, cname, specif_code):
-        
+        last_function = self.current_function
         self.current_type = self.context.get_type(cname, [])
         # print("TYYYYYYYYYPE: ", self.current_type)
         self.current_method = self.current_type.get_method(mname)
@@ -290,7 +334,7 @@ class HulkToCil:
             specif_code()
 
         self.dotcode.append(self.current_function)
-        self.current_function = None
+        self.current_function = last_function
         self.current_type = None
 
         return (mname, self.to_function_name(mname, cname))
@@ -353,27 +397,29 @@ class HulkToCil:
         ]
         
         for t in [object_type, string_type, int_type, bool_type]:
-            self.dottypes.append(t)
-        
+            self.dottypes.append(t)  
         
     
     def register_abort(self):
+        last_function = self.current_function
         self.current_function = cil.FunctionNode(self.to_function_name('abort', self.current_type.name), [], [], [])
         self.object_abort(self.current_type.name)
         self.dotcode.append(self.current_function)
-        self.current_function = None
+        self.current_function = last_function
     
     def register_copy(self):
+        last_function = self.current_function
         self.current_function = cil.FunctionNode(self.to_function_name('copy', self.current_type.name), [], [], [])
         self.object_copy()
         self.dotcode.append(self.current_function)
-        self.current_function = None
+        self.current_function = last_function
     
     def register_type_name(self):
+        last_function = self.current_function
         self.current_function = cil.FunctionNode(self.to_function_name('type_name', self.current_type.name), [], [], [])
         self.object_type_name()
         self.dotcode.append(self.current_function)
-        self.current_function = None
+        self.current_function = last_function
         
     def register_object_functions(self):
         self.register_abort()
@@ -485,51 +531,136 @@ class HulkToCilVisitor(HulkToCil):
     def visit(self, node: FunctionDeclaration, scope, return_var=None):
         previous_method = self.current_method
         previous_function = self.current_function
-        # self.current_method = self.current_type.get_method(node.id)
+
+        self.current_method = self.context.get_method(node.identifier, node.parameters)
+
+        # Add function to .CODE
+        self.current_function = self.register_function(node.identifier)
+            #self.to_function_name(, self.current_method.return_type.name)
+
+        # Add params
+        # self.current_function.params.append(cil.ParamNode("self"))
+        for pname in node.parameters:
+            self.register_param(VariableInfo(pname.identifier, pname.type))
+
+        # Body
+        value = self.visit(node.body, scope)
+
+        # Return
+        if self.current_method.return_type.name == "Void":
+            value = None
+        self.register_instruction(cil.ReturnNode(value))
+
+        self.current_method = previous_method
+        self.current_function = previous_function
+
+    @visitor.when(TypeMethodDeclaration)
+    def visit(self, node: TypeMethodDeclaration, scope, return_var = None):
+        previous_method = self.current_method
+        previous_function = self.current_function
+
+        self.current_method = self.current_type.get_method(node.identifier) #, node.parameters)
 
         # Add function to .CODE
         self.current_function = self.register_function(
-            self.to_function_name(node.identifier, "void")#self.current_type.name)
+            self.to_function_name(node.identifier, self.current_type.name)
         )
 
         # Add params
         self.current_function.params.append(cil.ParamNode("self"))
         for pname in node.parameters:
-            self.register_param(VariableInfo(pname.identifier))
+            self.register_param(VariableInfo(pname.identifier, pname.type))
 
         # Body
         value = self.define_internal_local()
-        print(f"val: {value}")
         self.visit(node.body, scope, value)
 
         # Return
-        # if isinstance(self.current_method.return_type, VoidType):
-        #     value = None
-        # TODO: fix return local value
+        if self.current_method.return_type.name == "Void":
+            value = None
         self.register_instruction(cil.ReturnNode(value))
 
         self.current_method = previous_method
         self.current_function = previous_function
+
+    @visitor.when(TypeDeclaration)
+    def visit(self, node: TypeDeclaration, scope, return_var=None):
+        self.current_type = self.context.get_type(node.identifier)
+
+        self.register_abort()
+        self.register_copy()
+        self.register_type_name()
+
+        type_node = self.register_type(self.current_type.name)
+
+        current_type = self.current_type
+        while current_type is not None:
+            attributes = [
+                (node.identifier + "_" + attr.name) for attr in current_type.attributes
+            ]
+           
+            type_node.attributes.extend(attributes[::-1])
+           
+            current_type = current_type.parent
+
+        type_node.attributes.reverse()
+
+        type_node.methods = [(method_name, self.to_function_name(method_name, typex)) for method_name,(_, typex) in self.methods[node.identifier].items()]
+        self.build_constructor(node)
+
+        self.visit(node.decl_body, scope)
+
+    @visitor.when(TypeInstanciation)
+    def visit(self, node: TypeInstanciation, scope, return_var = None):
+        _self = self.define_internal_local()
+        self.register_instruction(cil.AllocateNode(node.identifier, _self))
+        self.register_instruction(cil.ArgNode(_self))
+        for arg in node.arguments:
+            local_arg = self.get_local(arg.identifier)
+            self.register_instruction(cil.ArgNode(local_arg))
+        self.register_instruction(
+            cil.StaticCallNode(self.to_function_name("constructor", node.identifier), return_var)
+        )
+
+    @visitor.when(TypeVarInit)
+    def visit(self, node: TypeVarInit, scope, return_var=None):
+        last_function = self.current_function
+
+        self.current_function = self.register_function(self.to_function_name(f"{node.identifier.identifier}_constructor", self.current_type.name))
+
+        self.params.append(cil.ParamNode("self"))
+         
+        # Assign init_expr if not None
+        if node.expression:
+            init_expr_value = self.define_internal_local()
+            val = self.visit(node.expression, scope, init_expr_value)
+            self.register_instruction(cil.ReturnNode(init_expr_value))                
+        else: # Assign default value 
+            default_var = self.define_internal_local()
+            self.register_instruction(cil.ValueNode(default_var, node.type_downcast))
+            self.register_instruction(cil.ReturnNode(default_var))
+        
+        self.current_function = last_function
+
     
     @visitor.when(VarInit)
     def visit(self, node: VarInit, scope: Scope, return_var= None):
-        # var_type = node.type_downcast if node.type_downcast != None else node.expression.__class__.__name__ # esto es un parche
-        # # var_type = node.expression
-        # # self.current_function = self.register_function("var_init_function") # ? hace falta esto?
-        # print('!!!!!!!!!!!!!!AQUIIII VARRRRRRRRR')
-        # print(node.expression)
-        # var = self.register_local(VariableInfo(node.identifier, self.context.get_type(var_type)))
-        # self.current_function.current_vars[node.identifier] = var
-        # value = self.visit(node.expression, scope)
-        # self.register_instruction(cil.AssignNode(var, value))
-        # return var
 
         idx = self.get_local(node.identifier.identifier)
         value = self.visit(node.expression, scope, idx)
 
-        if not any(idx == l.name for l in self.current_function.localvars):
-            self.register_local(VariableInfo(node.identifier.identifier, node.identifier.type))
-        self.register_instruction(cil.AssignNode(idx, value))
+        if isinstance(node.identifier.identifier, VarAttr):
+            self.register_instruction(cil.SetAttribNode(
+                "self",
+                self.to_attr_name(node.identifier.identifier.identifier, node.identifier.identifier.attr),
+                value,
+                node.expression.type
+            ))
+            # self.register_instruction(cil.AssignNode(return_var, value))
+        else:
+            if not any(idx == l.name for l in self.current_function.localvars):
+                self.register_local(VariableInfo(node.identifier.identifier, node.identifier.type))
+            self.register_instruction(cil.AssignNode(idx, value))
         # Add Assignment Node
         # if node.expression:
 
@@ -551,14 +682,18 @@ class HulkToCilVisitor(HulkToCil):
             self.visit(var_init, new_scope)
         return self.visit(node.body, new_scope, return_var)
     
+    # @visitor.when(VarMethod)
+    # def visit(self, node: VarMethod, scope, return_var = None):
+    #     node.
+    
     @visitor.when(VarUse)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
         # print('!!!!!!!!!!!!!!AQUIIII')
         # print(self.current_vars[node.identifier]+ "aaaa ??")
         # return self.current_vars[node.identifier]
         # # see how to handle this shit
-        if node.identifier == "self":
-            self.register_instruction(cil.AssignNode(node.identifier, "self"))
+        if isinstance(node.identifier, VarAttr):
+            self.register_instruction(cil.AssignNode(node.identifier.attr, "self"))
             return
 
         local_id = self.get_local(node.identifier)
@@ -575,8 +710,8 @@ class HulkToCilVisitor(HulkToCil):
             cil.GetAttribNode(
                 node.identifier,
                 "self",
-                self.to_attr_name("void", node.identifier),#self.current_type.name, node.identifier),
-                "void"#self.current_type.name,
+                self.to_attr_name(self.current_type.name, node.identifier),
+                self.current_type.name,
             )
         )
 
@@ -586,7 +721,29 @@ class HulkToCilVisitor(HulkToCil):
             arg_name = self.visit(arg, scope)
             self.register_instruction(cil.ArgNode(arg_name))
         ret = self.define_internal_local()
-        self.register_instruction(cil.StaticCallNode(self.to_function_name(node.identifier, "void"), ret))
+        self.register_instruction(cil.StaticCallNode(self.to_function_name(node.identifier, self.current_type.name), ret))
+
+    @visitor.when(FullConditional)
+    def visit(self, node: FullConditional, scope, return_var= None):
+        # IF condition GOTO label
+        condition_value = self.define_internal_local()
+        self.visit(node.conditional_expression, scope, condition_value)
+        then_label = "THEN_" + self.generate_next_id()
+        self.register_instruction(cil.GotoIfNode(condition_value, then_label))
+
+        # Else
+        self.visit(node.else_elif_statement, scope, return_var)
+
+        # GOTO end_label
+        end_label = "END_IF_" + self.generate_next_id()  # Example: END_IF_120
+        self.register_instruction(cil.GotoNode(end_label))
+
+        # Then label
+        self.register_instruction(cil.LabelNode(then_label))
+        [self.visit(x, scope, return_var) for x in node.scope_list]
+
+        # end_label
+        self.register_instruction(cil.LabelNode(end_label))
 
     @visitor.when(WhileLoop)
     def visit(self, node: WhileLoop, scope: Scope, return_var = None):
@@ -627,7 +784,9 @@ class HulkToCilVisitor(HulkToCil):
 
     @visitor.when(LessEqual)
     def visit(self, node: LessThan, scope, return_var = None):
+
         left = self.visit(node.expr1, scope)
+        print(left)
         right = self.visit(node.expr2, scope)
 
         self.register_instruction(cil.LessEqualNode(return_var, left, right))
@@ -646,6 +805,31 @@ class HulkToCilVisitor(HulkToCil):
 
         self.register_instruction(cil.LessEqualNode(return_var, left, right))
 
+    @visitor.when(Equal)
+    def visit(self, node: Equal, scope, return_var=None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+        
+        if self.get_var(left).type == "String":
+            self.register_instruction(cil.StrEqualNode(return_var, left, right))
+        else:
+            self.register_instruction(cil.EqualNode(return_var, left, right))
+
+    @visitor.when(NotEqual)
+    def visit(self, node: NotEqual, scope, return_var = None):
+        left = self.visit(node.expr1, scope)
+        right = self.visit(node.expr2, scope)
+
+        self.register_instruction(cil.NotEqualNode(return_var, left, right))
+
+    @visitor.when(Not)
+    def visit(self, node: Not, scope, return_var = None):
+        value = self.define_internal_local()
+        self.visit(node.condition, scope, value)
+        constant = self.define_internal_local()
+        self.register_instruction(cil.StaticCallNode(self.to_function_name("constructor", "Bool"), constant))
+        self.register_instruction(cil.AssignNode(constant, 1))
+        self.register_instruction(cil.MinusNode(return_var, constant, value))
 
     @visitor.when(Add)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
@@ -706,25 +890,31 @@ class HulkToCilVisitor(HulkToCil):
     def visit(self, node: UnaryBuildInFunction, scope: Scope, return_var= None):
         # arg = self.visit(node.argument, scope, return_var)
         if node.func == 'print':
-            arg = self.visit(node.argument, scope, return_var)
+            if return_var is None:
+                return_var = self.define_internal_local()
+            self.visit(node.argument, scope, return_var)
             # print("ARGS: "+ str(arg))
             # print("TIIIIPO: ", node.argument)
             if node.argument.__class__.__name__ == 'Number':
-                self.register_instruction(cil.PrintIntNode(arg))
+                self.register_instruction(cil.PrintIntNode(return_var))
             else:
-                self.register_instruction(cil.PrintStrNode(arg))
-            return arg   
+                self.register_instruction(cil.PrintStrNode(return_var))
+            return return_var   
         
     @visitor.when(String)
     def visit(self, node: String, scope: Scope, return_var):
         idx = self.generate_next_string_id()
         self.dotdata.append(cil.DataNode(idx, node.value))
-        self.register_instruction(cil.LoadNode(return_var, VariableInfo(idx, None, node.value))) 
+        self.register_instruction(cil.LoadNode(return_var, VariableInfo(idx, "String", node.value))) 
     
     @visitor.when(Scope)
-    def visit(self, node: Scope, scope, return_var):
+    def visit(self, node: Scope, scope, return_var=None):
         for statement in node.statements:
             self.visit(statement, scope, return_var)
-    # @visitor.when(TypeDeclaration)
+
+    @visitor.when(DeclarationScope)
+    def visit(self, node: DeclarationScope, scope, return_var=None):
+        for statement in node.statements:
+            self.visit(statement, scope, return_var)
         
     

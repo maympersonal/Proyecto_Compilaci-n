@@ -60,7 +60,6 @@ class Type:
 
     def define_attribute(self, attr):#comprobar
         try:
-            print(attr)
             self.get_attribute(attr.name)
         except SemanticError:
             self.attributes.append(attr)
@@ -79,7 +78,7 @@ class Type:
             except SemanticError:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
    
-    def define_method(self,newMethod):#comprobar
+    def define_method(self, newMethod: Method):#comprobar
         if newMethod.name in (method.name for method in self.methods):
             raise SemanticError(f'Method "{newMethod.name}" already defined in {self.name}')
         self.methods.append(newMethod)
@@ -132,25 +131,6 @@ class ErrorType(Type):
     def __eq__(self, other):
         return isinstance(other, Type)
 
-class VoidType(Type):
-    def __init__(self):
-        Type.__init__(self, '<void>')
-
-    def conforms_to(self, other):
-        raise Exception('Invalid type: void type.')
-
-    def bypass(self):
-        return True
-
-    def __eq__(self, other):
-        return isinstance(other, VoidType)
-
-class IntType(Type):
-    def __init__(self):
-        Type.__init__(self, 'int')
-
-    def __eq__(self, other):
-        return other.name == self.name or isinstance(other, IntType)
 
 class Context:
     def __init__(self):
@@ -163,16 +143,12 @@ class Context:
         typex = self.types[name] = Type(name)
         return typex
 
-    def get_type(self, name:str,errors=[]):
+    def get_type(self, name:str,errors):
         try:
-            print(self.types)
             return self.types[name]
         except KeyError:
             errors.append(SemanticError(f'Type "{name}" is not defined.'))
             return ErrorType()
-
-    def get_types(self, names:list,errors):
-        return [self.get_type(name,errors) for name in names]
 
     def get_type_cil(self, name:str):
 
@@ -185,6 +161,9 @@ class Context:
             print(SemanticError(f'Type "{name}" is not defined.'))
 
             return ErrorType()
+
+    def get_types(self, names:list,errors):
+        return [self.get_type(name,errors) for name in names]
        
     def create_method(self, newMethod):#agregado
         try:
@@ -196,7 +175,7 @@ class Context:
 
     def get_method(self, name:str, param_types:list):
         try:
-            return self.methods[name,param_types]
+            return self.methods[name]
         except KeyError:
             print((f'Method "{name}" is not defined.'))
             raise SemanticError(f'Method "{name}" is not defined.')
@@ -225,7 +204,6 @@ class VariableInfo:
         self.name = name
         self.type = vtype
         self.data = data
-
 # class VectorType(Type):
 #     def __init__(self, name:str,elements_Type : Type):
 #         super.__init__(name)
@@ -236,6 +214,7 @@ class SemanticScope:
         self.parent = parent
         self.children = []
         self.index = 0 if parent is None else len(parent)
+        self.errors = []
 
     def __len__(self):
         return len(self.locals)
@@ -255,7 +234,6 @@ class SemanticScope:
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            print("*******************StopIteration************************")
             return self.parent.find_variable(vname, self.index) if self.parent != None else None
 
     # def find_variable_childeren(self, vname):
@@ -274,15 +252,12 @@ class SemanticScope:
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
 
+    
+
 #herramientas
 def Obtain_Key(param_types):
     string = ",".join([parType.name for parType in param_types])
     return string
 def filter_by_name(data, name):
-    print("FILTER BY NAME")
-    print(data)
-    '''for key, value in data.items():
-        if key == name:'''
-
     #return {key: value for key, value in data.items() if key[0] == name}
     return {key: value for key, value in data.items() if key == name}
