@@ -3,6 +3,7 @@ from sly import Lexer
 
 # Definición de la clase Lexer para el lenguaje Hulk
 class HulkLexer(Lexer):
+    errors=[]
     # Definición de los tokens
     tokens = {
         LET, IN, FUNCTION, IF, ELSE, ELIF, FOR, WHILE, NEW, INHERITS, TYPE,
@@ -12,7 +13,7 @@ class HulkLexer(Lexer):
         LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, SEMICOLON, COLON,
         COMMA, DOT, SINCETHAT, AND, OR, NOT, ESPACEDCONCAT, CONCAT, STRING,
         NUMBER, NUMBER_TYPE, TRUE, FALSE, IS, AS, PI_CONST, E_CONST, RANGE,
-        PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE
+        PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE, CAND, COR, CNOT
     }
 
     # Ignorar espacios en blanco y tabulaciones
@@ -69,6 +70,9 @@ class HulkLexer(Lexer):
     AND = r'&'
     OR = r'\|'
     NOT = r'!'
+    CAND = r'and'
+    COR = r'or'
+    CNOT = r'not'
 
     # Definición de concatenación de espacios
     ESPACEDCONCAT = r'@@'
@@ -87,11 +91,6 @@ class HulkLexer(Lexer):
         t.value = t.value[1:-1]
         return t
 
-    '''# Definición de valores booleanos
-    @_(r'true|false')
-    def BOOLEAN(self, t):
-        t.value = True if t.value == 'true' else False
-        return t'''
 
     # Definición de identificadores y palabras clave
     IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -127,11 +126,7 @@ class HulkLexer(Lexer):
 
     # Manejo de errores léxicos
     def error(self, t):
-        if self.context:
-            self.context.error(self.lineno,
-                               f'Illegal character {t.value[0]!r}')
-        else:
-            print(f'{self.lineno}: Illegal character {t.value[0]!r}')
+        self.errors.append(f'{self.lineno}: Illegal character {t.value[0]!r}')
         self.index += 1
 
     # Inicialización del lexer con un contexto dado

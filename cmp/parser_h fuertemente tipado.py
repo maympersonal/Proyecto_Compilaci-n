@@ -61,7 +61,7 @@ class HulkParser(Parser):
         self.parsertrack.append("program_level_decl "+str([v for v in p]))
         return p[0]
 
-    @_( 'inst', #**************************************************
+    @_( 'scope', #**************************************************
         'inst SEMICOLON', 
         'inst SEMICOLON inst_list')
     def inst_list(self, p):
@@ -70,7 +70,7 @@ class HulkParser(Parser):
 
         
     # Instrucción
-    @_('scope_list',
+    @_('scope',
        'flux_control', 
        'expression', 
        'LPAREN var_dec RPAREN')
@@ -137,12 +137,12 @@ class HulkParser(Parser):
         self.parsertrack.append("type_anotation "+str([v for v in p]))
         return p[1]
     
-    @_( 'scope', #*******************************************************
+    '''@_( 'scope', #*******************************************************
         'scope scope_list')
     def scope_list(self, p):
         self.parsertrack.append("scope_list "+str([v for v in p]))
         return [y for x in [[p[0]], p[1]] for y in x] if len(p) == 2 else [p[0]]
-        
+        '''
     # Alcance
     @_('LBRACE inst_list RBRACE', 
        'LBRACE RBRACE')
@@ -267,7 +267,7 @@ class HulkParser(Parser):
         self.parsertrack.append("var_asign "+str([v for v in p]))
         return insert_error_info(p,VarInit(p.var_use, p.expression, p[1]))
 
-    # Declaración de función
+    '''# Declaración de función
     @_('FUNCTION IDENTIFIER parameters function_full_declaration')
     def function_declaration(self, p):
         self.parsertrack.append("function_declaration "+str([v for v in p]))
@@ -296,7 +296,7 @@ class HulkParser(Parser):
     @_('FUNCTION IDENTIFIER LPAREN RPAREN function_inline_declaration')
     def function_declaration(self, p):
         self.parsertrack.append("function_declaration "+str([v for v in p]))
-        return insert_error_info(p,FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration))
+        return insert_error_info(p,FunctionDeclaration(p.IDENTIFIER, p.function_inline_declaration))'''
     
     @_('FUNCTION IDENTIFIER parameters type_anotation function_full_declaration')
     def function_declaration(self, p):
@@ -353,10 +353,10 @@ class HulkParser(Parser):
         self.parsertrack.append("inline_conditional "+str([v for v in p]))
         return insert_error_info(p,InlineConditional(p.conditional_expression, p.expression, p.else_elif_statement))
 
-    @_('LPAREN conditional_expression RPAREN scope_list else_elif_statement')
+    @_('LPAREN conditional_expression RPAREN scope else_elif_statement')
     def full_conditional(self, p):
         self.parsertrack.append("full_conditional "+str([v for v in p]))
-        return insert_error_info(p,FullConditional(p.conditional_expression, p.scope_list, p.else_elif_statement))
+        return insert_error_info(p,FullConditional(p.conditional_expression, p.scope, p.else_elif_statement))
 
     # Sentencia else o elif
     @_('ELIF inline_conditional', 
@@ -546,7 +546,7 @@ class HulkParser(Parser):
             return insert_error_info(p,TypeVarInit(p.identifier, p.expression, p.type_downcast))
 
     
-    @_('IDENTIFIER parameters RETURN expression')
+    '''@_('IDENTIFIER parameters RETURN expression')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
         return insert_error_info(p,TypeMethodDeclaration(p.IDENTIFIER, p.expression, parameters = p.parameters))
@@ -564,7 +564,7 @@ class HulkParser(Parser):
     @_('IDENTIFIER LPAREN RPAREN function_full_declaration')
     def method_declaration(self, p):
         self.parsertrack.append("method_declaration "+str([v for v in p]))
-        return insert_error_info(p,TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration))
+        return insert_error_info(p,TypeMethodDeclaration(p.IDENTIFIER, p.function_full_declaration))'''
         
     @_('IDENTIFIER parameters type_anotation RETURN expression')
     def method_declaration(self, p):
