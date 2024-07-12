@@ -322,7 +322,6 @@ class HulkToCil:
     def cil_abstract_method(self, mname, cname, specif_code):
         last_function = self.current_function
         self.current_type = self.context.get_type(cname, [])
-        # print("TYYYYYYYYYPE: ", self.current_type)
         self.current_method = self.current_type.get_method(mname)
         self.current_function = cil.FunctionNode(
             self.to_function_name(mname, cname), [], [], []
@@ -477,45 +476,10 @@ class HulkToCilVisitor(HulkToCil):
         self.current_function = cil.FunctionNode('main', [], [], [])
         self.dotcode.append(self.current_function)
         
-        # main_entry = self.to_function_name('entry', 'Main')
-        # main_meth_name = self.to_function_name('main', 'Main')
         
-        # instance for entry
-        # a = self.define_internal_local()
-        # self.register_instruction(cil.AllocateNode('Main', a))
-        # self.register_instruction(cil.ArgNode(a))
-        # instance = self.define_internal_local()
-        # self.register_instruction(cil.StaticCallNode(main_entry, instance))
-        
-        # result = self.define_internal_local()
-        # self.register_instruction(cil.ArgNode(instance))
-        # self.register_instruction(cil.StaticCallNode(main_meth_name, result))
-        # self.register_instruction(cil.ReturnNode(0))
-        
-        
-        
-        # self.current_type = self.context.get_type_cl(node)
-        # print("AQUIIIIIIIIII ", self.current_type)
-        
-        # self.current_type = cil.TypeNode('Main')
 
         for decl in node.program_decl_list:
             self.visit(decl, scope)
-        
-        # self.register_object_functions()
-        # self.add_builtin_functions()
-        # self.add_builtin_entry()
-        
-        # print('!!!!!!!!!!!!!!AQUIIII DOTTYPES ---------')
-        # print(program_node.dottypes)
-        
-        # node.program_decl_list.append(TypeDeclaration('Main', []))
-        
-        print("------------------------------------------------------------------------------")
-        print('!!!!!!!!!!!!!!AQUIIII decl List ---------')
-        for decl in node.program_decl_list:
-            print(decl.__class__.__name__)
-        print("------------------------------------------------------------------------------")
         
         self.register_instruction(cil.ExitNode())
         
@@ -682,15 +646,9 @@ class HulkToCilVisitor(HulkToCil):
             self.visit(var_init, new_scope)
         return self.visit(node.body, new_scope, return_var)
     
-    # @visitor.when(VarMethod)
-    # def visit(self, node: VarMethod, scope, return_var = None):
-    #     node.
     
     @visitor.when(VarUse)
     def visit(self, node: VarUse, scope: Scope, return_var= None):
-        # print('!!!!!!!!!!!!!!AQUIIII')
-        # print(self.current_vars[node.identifier]+ "aaaa ??")
-        # return self.current_vars[node.identifier]
         # # see how to handle this shit
         if isinstance(node.identifier, VarAttr):
             self.register_instruction(cil.AssignNode(node.identifier.attr, "self"))
@@ -786,7 +744,6 @@ class HulkToCilVisitor(HulkToCil):
     def visit(self, node: LessThan, scope, return_var = None):
 
         left = self.visit(node.expr1, scope)
-        print(left)
         right = self.visit(node.expr2, scope)
 
         self.register_instruction(cil.LessEqualNode(return_var, left, right))
@@ -893,8 +850,6 @@ class HulkToCilVisitor(HulkToCil):
             if return_var is None:
                 return_var = self.define_internal_local()
             self.visit(node.argument, scope, return_var)
-            # print("ARGS: "+ str(arg))
-            # print("TIIIIPO: ", node.argument)
             if node.argument.__class__.__name__ == 'Number':
                 self.register_instruction(cil.PrintIntNode(return_var))
             else:

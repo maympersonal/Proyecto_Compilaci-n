@@ -423,7 +423,6 @@ def get_formatter():
         
         @visitor.when(PrintStrNode)
         def visit(self, node: PrintStrNode):
-            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             # ? PRINT STR
             return f'PRINT {node.str_addr} '
         
