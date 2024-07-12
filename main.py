@@ -40,81 +40,81 @@ def hacer_lex(archivo, stop = False):
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
-        # for token in tokens:
-        #    print(token)
+        for token in tokens:
+           print(token)
 
-        #input()
-        print()
-        result = parser.parse(tokens)
+        # #input()
+        # print()
+        # result = parser.parse(tokens)
         
-        '''v = viewer.visit(result)
-        print()
-        print("AST = " + v)
-        print()'''
-        print(result)
-        print(archivo)
-        if stop:
-            input()
-
-        collector = TypeCollector()
-        collector.visit(result)
-        print(collector.context.types)
-        print(collector.errors)
-
-        builder = TypeBuilder(collector.context, collector.errors)
-        builder.visit(result)
-        print(builder)
-        print(builder.errors)   
-
-
-        checker = TypeChecker(builder.context,builder.errors)
-        scope = checker.visit(result)
-        print("SCOPE ")
-        print(str(scope))#.locals))
-        print("SCOPE PARENT ?")
-        print(str(scope.parent))
-        print("SCOPE CHILDREN")
-        print(str(scope.children))
-        
-        hulk_to_cil = HulkToCilVisitor(builder.context)
-        cil_ast = hulk_to_cil.visit(result, scope)
-
-        formatter = get_formatter()
-        print("CCCCCIIILLLLLLL")
-        print("-------------------")
-        print(formatter(cil_ast))
-        
-        # code_gen = HulkMIPSGenerator()
-        # code_gen.visit(cil_ast)
-
-        # v = viewer.visit(result)
+        # '''v = viewer.visit(result)
         # print()
         # print("AST = " + v)
-        # print()
+        # print()'''
         # print(result)
         # print(archivo)
-        
-        
-        hulk_to_cil = HulkToCilVisitor(builder.context)
-        cil_ast = hulk_to_cil.visit(result, scope)
+        # if stop:
+        #     input()
 
-        formatter = get_formatter()
-        
-        print(
-            "-------------------"
+        # collector = TypeCollector()
+        # collector.visit(result)
+        # print(collector.context.types)
+        # print(collector.errors)
 
-        )
-        print() 
-        print("CCCCCIIILLLLLLL")
-        print("-------------------")
-        print(formatter(cil_ast))
-        print("-------------------")
-        print2 = get_formatter2()
-        print("Nodes de cil")
-        print(print2(cil_ast))
+        # builder = TypeBuilder(collector.context, collector.errors)
+        # builder.visit(result)
+        # print(builder)
+        # print(builder.errors)   
+
+
+        # checker = TypeChecker(builder.context,builder.errors)
+        # scope = checker.visit(result)
+        # print("SCOPE ")
+        # print(str(scope))#.locals))
+        # print("SCOPE PARENT ?")
+        # print(str(scope.parent))
+        # print("SCOPE CHILDREN")
+        # print(str(scope.children))
         
-        if stop:
-            input()
+        # hulk_to_cil = HulkToCilVisitor(builder.context)
+        # cil_ast = hulk_to_cil.visit(result, scope)
+
+        # formatter = get_formatter()
+        # print("CCCCCIIILLLLLLL")
+        # print("-------------------")
+        # print(formatter(cil_ast))
+        
+        # # code_gen = HulkMIPSGenerator()
+        # # code_gen.visit(cil_ast)
+
+        # # v = viewer.visit(result)
+        # # print()
+        # # print("AST = " + v)
+        # # print()
+        # # print(result)
+        # # print(archivo)
+        
+        
+        # hulk_to_cil = HulkToCilVisitor(builder.context)
+        # cil_ast = hulk_to_cil.visit(result, scope)
+
+        # formatter = get_formatter()
+        
+        # print(
+        #     "-------------------"
+
+        # )
+        # print() 
+        # print("CCCCCIIILLLLLLL")
+        # print("-------------------")
+        # print(formatter(cil_ast))
+        # print("-------------------")
+        # print2 = get_formatter2()
+        # print("Nodes de cil")
+        # print(print2(cil_ast))
+        
+        # if stop:
+        #     input()
          
 def todos():
     # Obtener la ruta de la carpeta actual

@@ -64,7 +64,7 @@ class ShiftReduceParser:
     def __init__(self, G, verbose=False):
         self.G = G
         self.verbose = verbose
-        self.action = {}
+        self.action = {}    
         self.goto = {}
         self._build_parsing_table()
 
@@ -97,7 +97,7 @@ class ShiftReduceParser:
                 cursor += 1
             elif action == ShiftReduceParser.REDUCE:
                 production = tag
-                left, right = production
+                left, right = production    
                 for _ in range(2 * len(right)):
                     stack.pop()
                 state = stack[-1]

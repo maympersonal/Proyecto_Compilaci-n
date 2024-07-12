@@ -125,7 +125,7 @@ class Token:
         self.pos = pos
 
     def __str__(self):
-        return f'{self.token_type}: {self.lex}'
+        return f'{self.token_type}: {self.lex}. Position: {self.pos}'
 
     def __repr__(self):
         return str(self)

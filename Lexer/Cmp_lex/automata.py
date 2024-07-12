@@ -4,6 +4,7 @@ except:
     pass
 
 from Lexer.Cmp_lex.utils import Terminal
+from Lexer.Cmp_lex.grammarTest import keywords
 
 def regular_formatter(state):
     return str(state)
@@ -58,7 +59,6 @@ class State:
 
     def to_deterministic(self, formatter=regular_formatter):
         # este keywords son los de la gramatica que se use
-        keywords = ["<id>", "<num>", "<string>", "<char>"]
         keyword_tags = set(keywords)
         closure = self.epsilon_closure
         start = State(tuple(closure), any(s.final for s in closure), formatter)
