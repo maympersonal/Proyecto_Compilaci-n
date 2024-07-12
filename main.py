@@ -10,6 +10,9 @@ from cmp.HulkToCil import HulkToCilVisitor
 from cmp.cil_h import get_formatter, get_formatter2
 from cmp.code_gen import HulkMIPSGenerator
 
+from Lexer.Lexer import Lexer
+from Lexer.Cmp_lex.grammarTest import table_symbols
+
 
 def leer_archivos_hulk(ruta_carpeta):
     # Lista para almacenar los nombres de los archivos HULK encontrados
@@ -38,6 +41,9 @@ def hacer_lex(archivo, stop = False):
         viewer = HulkPrintVisitor()
         #viewer = view_ast()
         # Tokenizar el contenido del archi#o
+        
+        # lexer = Lexer(table_symbols)
+        # tokens, errors = lexer.Tokenize(contenido)
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
         for token in tokens:
@@ -45,30 +51,30 @@ def hacer_lex(archivo, stop = False):
 
         # #input()
         # print()
-        # result = parser.parse(tokens)
+        result = parser.parse(tokens)
         
-        # '''v = viewer.visit(result)
-        # print()
-        # print("AST = " + v)
-        # print()'''
+        v = viewer.visit(result)
+        print()
+        print("AST = " + v)
+        print()
         # print(result)
         # print(archivo)
-        # if stop:
-        #     input()
+        if stop:
+            input()
 
-        # collector = TypeCollector()
-        # collector.visit(result)
+        collector = TypeCollector()
+        collector.visit(result)
         # print(collector.context.types)
         # print(collector.errors)
 
-        # builder = TypeBuilder(collector.context, collector.errors)
-        # builder.visit(result)
+        builder = TypeBuilder(collector.context, collector.errors)
+        builder.visit(result)
         # print(builder)
         # print(builder.errors)   
 
 
-        # checker = TypeChecker(builder.context,builder.errors)
-        # scope = checker.visit(result)
+        checker = TypeChecker(builder.context,builder.errors)
+        scope = checker.visit(result)
         # print("SCOPE ")
         # print(str(scope))#.locals))
         # print("SCOPE PARENT ?")
@@ -87,12 +93,12 @@ def hacer_lex(archivo, stop = False):
         # # code_gen = HulkMIPSGenerator()
         # # code_gen.visit(cil_ast)
 
-        # # v = viewer.visit(result)
-        # # print()
-        # # print("AST = " + v)
-        # # print()
-        # # print(result)
-        # # print(archivo)
+        # v = viewer.visit(result)
+        # print()
+        # print("AST = " + v)
+        # print()
+        # print(result)
+        # print(archivo)
         
         
         # hulk_to_cil = HulkToCilVisitor(builder.context)

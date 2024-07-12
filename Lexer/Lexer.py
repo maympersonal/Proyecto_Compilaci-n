@@ -111,12 +111,15 @@ class Lexer:
 
             if not final:
                 continue
-            tokens.append(Token(lex, final.tag, (rows, cols)))
+            newtoken = Token(lex, final.tag, (rows, cols))
+            tokens.append(newtoken)
 
             cols += len(lex)
             index = end_index
             index, rows, cols = self.CleanupText(index, text, cols, rows)
 
-        tokens.append(Token("$", "$", (rows, cols)))
+        finaltoken = Token("$", "$", (rows, cols))
+        tokens.append(finaltoken)
+        # tokens.append(Token("$", "$", (rows, cols)))
 
         return tokens, errors

@@ -1,5 +1,5 @@
 from Lexer.Cmp_lex.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
-
+from typing import Tuple
 class LexerError(Exception):
     def __init__(self, message):
         super().__init__(message)
@@ -107,32 +107,45 @@ def pprint(item, header=""):
     else:
         print(item)
 
-class Token:
-    """
-    Basic token class.
+# class Token:
+#     """
+#     Basic token class.
 
-    Parameters
-    ----------
-    lex : str
-        Token's lexeme.
-    token_type : Enum
-        Token's type.
-    """
+#     Parameters
+#     ----------
+#     lex : str
+#         Token's lexeme.
+#     token_type : Enum
+#         Token's type.
+#     """
 
-    def __init__(self, lex, token_type, pos):
-        self.lex = lex
-        self.token_type = token_type
-        self.pos = pos
+#     def __init__(self, lex, token_type, pos):
+#         self.lex = lex
+#         self.token_type = token_type
+#         self.pos = pos
 
-    def __str__(self):
-        return f'{self.token_type}: {self.lex}. Position: {self.pos}'
+#     def __str__(self):
+#         return f'{self.token_type}: {self.lex}. Position: {self.pos}'
 
+#     def __repr__(self):
+#         return str(self)
+
+#     @property
+#     def is_valid(self):
+#         return True
+class Token(object):
+    '''
+    Representation of a single token.
+    '''
+    def __init__(self, value, type, pos: Tuple[int,int]):
+        self.type = type
+        self.value = value
+        self.lineno = pos[0]
+        self.index = pos[1]
+    __slots__ = ('type', 'value', 'lineno', 'index', 'end')
     def __repr__(self):
-        return str(self)
+        return f'Token(type={self.type!r}, value={self.value!r}, lineno={self.lineno}, index={self.index})'
 
-    @property
-    def is_valid(self):
-        return True
 
 class UnknownToken(Token):
     def __init__(self, lex):

@@ -23,7 +23,7 @@ def build_regex(regex: str, verbose = False) -> Tuple[DFA, List[str]]:
             
     tokens.append(grammar.EOF)
     derivation, operations = parser(tokens)
-    tokens = [Token(x.Name, x, 0) for x in tokens]
+    tokens = [Token(x.Name, x, (0,0)) for x in tokens]
     ast = evaluate_reverse_parse(derivation, operations, tokens)
     evaluator = EvaluateVisitor()
     if verbose:

@@ -1,5 +1,5 @@
 from Lexer.Lexer import Lexer
-from Lexer.Cmp_lex.grammarTest import tokens
+from Lexer.Cmp_lex.grammarTest import table_symbols
 from Lexer.Parser_lex.regex import build_regex
 # test
 from pprint import pprint
@@ -19,7 +19,7 @@ def hacer_lex(archivo, stop = False):
         
         contenido = f.read()
 
-        lexer = Lexer(tokens)
+        lexer = Lexer(table_symbols)
         tokenCreat, errors = lexer.Tokenize(contenido) 
         for token in tokenCreat:
             print(token) 
