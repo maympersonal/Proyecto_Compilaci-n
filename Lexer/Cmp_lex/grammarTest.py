@@ -1,6 +1,6 @@
 from Lexer.Cmp_lex.utils import Grammar
-
 G = Grammar()
+
 INIT = G.NonTerminal("INIT", startSymbol=True)
 PROGRAM = G.NonTerminal("PROGRAM")
 NUMBER, STRING, IDENTIFIER = G.Terminals("NUMBER STRING IDENTIFIER")
@@ -14,18 +14,19 @@ TRUE, FALSE, IS, AS, PI_CONST, E_CONST, RANGE = G.Terminals("TRUE FALSE IS AS PI
 PRINT, SQRT, SIN, COS, EXP, LOG, RAND = G.Terminals("PRINT SQRT SIN COS EXP LOG RAND")
 BOOLEAN_TYPE, NUMBER_TYPE = G.Terminals("BOOLEAN_TYPE NUMBER_TYPE")
     
-keywords = [NUMBER, STRING, IDENTIFIER,LET, IN, FUNCTION, IF, ELSE, ELIF, FOR, WHILE, NEW, INHERITS, TYPE, PROTOCOL, EXTENDS,PLUS, MINUS, MULTIPLY, DIVIDE, ASTERPOWER, POWER, MODULE,RETURN, LESS_EQUAL, LESS_THAN, GREATER_EQUAL, GREATER_THAN, EQUAL, NOT_EQUAL,
-DEST_ASSIGN, ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, SEMICOLON, COLON, COMMA, DOT, SINCETHAT,AND, OR, NOT, ESPACEDCONCAT, CONCAT,TRUE, FALSE, IS, AS, PI_CONST, E_CONST, RANGE,
-PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE, NUMBER_TYPE]
+keywords = ["let", "in", "function", "if", "else", "elif", "for", "while", "new", "inherits", "type", "protocol", "extends", "return", "less_equal", "less_than", "greater_equal", "greater_than", "equal", "not_equal", "dest_assign", "assign", "lparen", "rparen", "lbracket", "rbracket", "lbrace", "rbrace", "semicolon", "colon", "comma", "dot", "sincethat", "and", "or", "not", "espacedconcat", "concat", "true", "false", "is", "as", "pi_const", "e_const", "range", "print", "sqrt", "sin", "cos", "exp", "log", "rand", "boolean_type", "number_type"]
+# keywords = [NUMBER, STRING, IDENTIFIER,LET, IN, FUNCTION, IF, ELSE, ELIF, FOR, WHILE, NEW, INHERITS, TYPE, PROTOCOL, EXTENDS,PLUS, MINUS, MULTIPLY, DIVIDE, ASTERPOWER, POWER, MODULE,RETURN, LESS_EQUAL, LESS_THAN, GREATER_EQUAL, GREATER_THAN, EQUAL, NOT_EQUAL,
+# DEST_ASSIGN, ASSIGN, LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, SEMICOLON, COLON, COMMA, DOT, SINCETHAT,AND, OR, NOT, ESPACEDCONCAT, CONCAT,TRUE, FALSE, IS, AS, PI_CONST, E_CONST, RANGE,
+# PRINT, SQRT, SIN, COS, EXP, LOG, RAND, BOOLEAN_TYPE, NUMBER_TYPE]
     
 table_symbols = [
+        (FOR, "for"),
         (LET, "let"),
-        (IN, "in"),
-        (FUNCTION, "function"),
         (IF, "if"),
         (ELSE, "else"),
         (ELIF, "elif"),
-        (FOR, "for"),
+        (IN, "in"),
+        (FUNCTION, "function"),
         (WHILE, "while"),
         (NEW, "new"),
         (INHERITS, "inherits"),
@@ -80,15 +81,15 @@ table_symbols = [
         (LOG, "log"),
         (RAND, "rand"),
         (BOOLEAN_TYPE, "Boolean"),
-        (STRING, "\"((\\\\\")|(\\A))*\""),
+        (IDENTIFIER, "([a..z]|[A..Z]|_)([a..z]|[A..Z]|_|[0..9])*"),
         (NUMBER, "([0..9]+\.)?[0..9]+"),
-        (IDENTIFIER, "([a..z]|[A..Z]|_)([a..z]|[A..Z]|_|[0..9])*")
+        (STRING, "\"((\\\\\")|(\\A))*\"")
 ] 
  
-""" 
-ESTA FUE PARA TEST
 
+# ESTA FUE PARA TEST 
 
+"""
 # No Terminals
 init_ = G.NonTerminal("<init>", startSymbol=True)
 program = G.NonTerminal("<program>")
@@ -120,7 +121,7 @@ keywords= [for_, let, if_, else_, elif_, while_, function, pi, e, print_,
             new, inherits, protocol, type_, in_, range_, true, false, extends, as_,
             rand, sin, cos, sqrt, exp, log, is_, tan, base]
 
-tokens =  [
+table_symbols =  [
     (for_, "for"),
     (let, "let"),
     (if_, "if"),
@@ -184,4 +185,5 @@ tokens =  [
     (identifier, "([a..z]|[A..Z]|_)([a..z]|[A..Z]|_|[0..9])*"),
     (number, "([0..9]+\.)?[0..9]+"),
     (string, "\"((\\\\\")|(\\A))*\"")
-] """
+] 
+"""
