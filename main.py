@@ -1,13 +1,13 @@
 from io import FileIO
 from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
-from cmp.ast_h import HulkPrintVisitor
+from cmp.ast_h import HulkPrintVisitor, view_ast
 import os
 from cmp.sentactic_analyzer import TypeCollector
 from cmp.sentactic_analyzer import TypeBuilder
 from cmp.sentactic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCilVisitor
-from cmp.cil_h import get_formatter, get_formatter2
+from cmp.cil_h import get_formatter
 from cmp.code_gen import HulkMIPSGenerator
 
 from Lexer.Lexer import Lexer
@@ -33,13 +33,12 @@ def hacer_lex(archivo, stop = False):
         # Leer el contenido del archivo
         
         contenido = f.read()
-        print(contenido)
-        print()
+
         # Crear un objeto Lexer
         lexer = HulkLexer(None)
         parser = HulkParser()
-        viewer = HulkPrintVisitor()
         #viewer = view_ast()
+        viewer = HulkPrintVisitor()
         # Tokenizar el contenido del archi#o
         tokens = lexer.tokenize(contenido)
         # Imprimir los tokens
@@ -52,35 +51,48 @@ def hacer_lex(archivo, stop = False):
         print()
         result = parser.parse(tokens)
         
-        # '''v = viewer.visit(result)
-        # print()
-        # print("AST = " + v)
-        # print()'''
-        # print(result)
-        # print(archivo)
-        # if stop:
-        #     input()
-
-        collector = TypeCollector()
+        '''v = viewer.visit(result)
+        print()
+        print("AST = " + v)
+        print()'''
+        print(result)
+        print(archivo)
+        if stop:
+            input()
+        a = contenido
+        code = a.split("\n")
+        print(code)
+        collector = TypeCollector(code)
         collector.visit(result)
         # print(collector.context.types)
         # print(collector.errors)
 
-        builder = TypeBuilder(collector.context, collector.errors)
+        builder = TypeBuilder(code,collector.context, collector.errors)
         builder.visit(result)
         # print(builder)
         # print(builder.errors)   
 
 
-        checker = TypeChecker(builder.context,builder.errors)
+        checker = TypeChecker(code,builder.context,builder.errors)
         scope = checker.visit(result)
+        for err in checker.errors:
+            print(err) 
+        
+        
+        v = viewer.visit(result)
+        print()
+        print("AST = " + v)
+        print()
+        # print(result)
+        # print(archivo)
+
         # print("SCOPE ")
         # print(str(scope))#.locals))
         # print("SCOPE PARENT ?")
         # print(str(scope.parent))
         # print("SCOPE CHILDREN")
         # print(str(scope.children))
-        
+        '''
         hulk_to_cil = HulkToCilVisitor(builder.context)
         cil_ast = hulk_to_cil.visit(result, scope)
 
@@ -104,7 +116,6 @@ def hacer_lex(archivo, stop = False):
         cil_ast = hulk_to_cil.visit(result, scope)
 
         formatter = get_formatter()
-        
         print(
             "-------------------"
 
@@ -112,14 +123,13 @@ def hacer_lex(archivo, stop = False):
         print() 
         print("CCCCCIIILLLLLLL")
         print("-------------------")
-        print(formatter(cil_ast))
-        print("-------------------")
-        print2 = get_formatter2()
-        print("Nodes de cil")
-        print(print2(cil_ast))
-        
+        print(formatter(cil_ast))'''
         if stop:
             input()
+        v = viewer.visit(result)
+        print()
+        print("AST = " + v)
+        print()
          
          
 def todos():
@@ -140,7 +150,7 @@ def uno(archivo):
     
 #todos()
 #uno("programs/shorts/Debug.hulk")
-uno("programs/shorts/test4.hulk")
+uno("programs/shorts/test7.hulk")
 #uno("programs/shorts/test55.hulk")
 #uno("programs/test.1.hulk")
 #creacodigos()
