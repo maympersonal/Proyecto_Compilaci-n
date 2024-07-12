@@ -15,7 +15,15 @@ class Program(Node):
         self.program_decl_list = program_decl_list
 
     def print_visitor(self, visitor):
-        decls = " , ".join([visitor.visit(pr) for pr in self.program_decl_list]) if isinstance(self.program_decl_list, list) else visitor.visit(self.program_decl_list)
+        if isinstance(self.program_decl_list, list):
+            decls = ""
+            for program_decl in self.program_decl_list:
+                if isinstance(program_decl, list):
+                    decls = decls + " , ".join([visitor.visit(pr) for pr in program_decl])
+                else:                
+                    decls = decls + visitor.visit(program_decl) + " , "
+        else:
+            decls = visitor.visit(self.program_decl_list)
         return f'{self.__class__.__name__} ({decls})'
 
 
@@ -368,10 +376,10 @@ class Atom(Node):
 # - value: representa el valor de la cadena.
 class String(Atom):
 
-    def __init__(self, value):
+    def __init__(self, value, type_downcast = None):
         super().__init__(value)
         self.value = value
-
+        self.type_downcast = type_downcast
 
     def print_visitor(self, visitor):
         return f'{self.__class__.__name__} ("{self.value}") ({self.type_downcast})'
@@ -381,9 +389,10 @@ class String(Atom):
 # - value: representa el valor numérico.
 class Number(Atom):
 
-    def __init__(self, value):
+    def __init__(self, value, type_downcast = None):
         super().__init__(value)
         self.value = value
+        self.type_downcast = type_downcast
 
     def print_visitor(self, visitor):
         return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
@@ -393,9 +402,10 @@ class Number(Atom):
 # - value: representa el valor booleano (True o False).
 class Boolean(Atom):
 
-    def __init__(self, value):
+    def __init__(self, value, type_downcast = None):
         super().__init__(value)
         self.value = value
+        self.type_downcast = type_downcast
 
     def print_visitor(self, visitor):
         return f'{self.__class__.__name__} ({self.value}) ({self.type_downcast})'
