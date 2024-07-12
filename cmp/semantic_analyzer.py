@@ -366,7 +366,7 @@ class TypeChecker:
             
 
             if arg1:= not(self.toconforms_to(arg1Type,'Number')):
-                self.errors.append(f'Error in line {{{node.lineno} index {node.index}. \n {self.code[node.lineno]}\n. The type of the right member is not Number')
+                self.errors.append(f'Error in line {node.lineno} index {node.index}. \n {self.code[node.lineno]}\n. The type of the right member is not Number')
 
             if arg2 := not(self.toconforms_to(arg2Type,'Number')):
                 self.errors.append(f'Error in line {node.lineno} index {node.index}. \n {self.code[node.lineno]}\n. The type of left member is not Number')
@@ -772,7 +772,7 @@ class TypeChecker:
             if arg1Type == None or arg2Type == None:
                 return ErrorType()
             if self.toconforms_to(arg1Type,'Number') or self.toconforms_to(arg1Type,'String')  and not(self.toconforms_to(arg2Type.name,'Number') or  self.toconforms_to(arg2Type,'String')):
-                    self.errors.append(f'Error in line {node.lineno} index {node.index}. \n {code[node.lineno]}\n. The type second parameter in not string or number')
+                    self.errors.append(f'Error in line {node.lineno} index {node.index}.   {self.code[node.lineno]} . The type second parameter in not string or number')
                     return ErrorType()
             elif self.toconforms_to(arg1Type,'Number')  and not(self.toconforms_to(arg2Type,'String')) :
                     self.errors.append(f'Error in line {node.lineno} index {node.index}.   {self.code[node.lineno-1]} . You can not concat two numbers')

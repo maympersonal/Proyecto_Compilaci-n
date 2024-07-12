@@ -3,9 +3,9 @@ from cmp.lexer_h import HulkLexer
 from cmp.parser_h import HulkParser
 from cmp.ast_h import HulkPrintVisitor, view_ast
 import os
-from cmp.sentactic_analyzer import TypeCollector
-from cmp.sentactic_analyzer import TypeBuilder
-from cmp.sentactic_analyzer import TypeChecker
+from cmp.semantic_analyzer import TypeCollector
+from cmp.semantic_analyzer import TypeBuilder
+from cmp.semantic_analyzer import TypeChecker
 from cmp.HulkToCil import HulkToCilVisitor
 from cmp.cil_h import get_formatter
 from cmp.code_gen import HulkMIPSGenerator
